@@ -31,6 +31,7 @@ function Planner() {
     toggleTask, addTask, removeTask, setProgress, setWeeklyGoal,
   } = usePlannerStore();
   const [addOpen, setAddOpen] = useState(false);
+  const [activeSubject, setActiveSubject] = useState<SubjectEntry | null>(null);
 
   const done = tasks.filter((t) => t.done).length;
   const overall = useMemo(() => {
