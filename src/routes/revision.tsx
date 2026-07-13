@@ -24,7 +24,7 @@ const topicPyqSubjects: Record<string, string[]> = {
 export const Route = createFileRoute("/revision")({
   head: () => ({
     meta: [
-      { title: "Revision — NewsMentor Daily" },
+      { title: "Revision — UPSC Hero by Biswajit" },
       { name: "description", content: "Revise everything you've already studied — pulled from your study archive with spaced-repetition suggestions." },
     ],
   }),

@@ -18,7 +18,7 @@ import { usePlannerStore } from "@/hooks/usePlannerStore";
 export const Route = createFileRoute("/planner")({
   head: () => ({
     meta: [
-      { title: "Study Planner — NewsMentor Daily" },
+      { title: "Study Planner — UPSC Hero by Biswajit" },
       { name: "description", content: "GS I–IV + Prelims syllabus tracker with progress bars and a personalised daily schedule for UPSC aspirants." },
     ],
   }),

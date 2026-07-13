@@ -20,7 +20,7 @@ function NotFoundComponent() {
         <h1 className="text-8xl font-serif text-primary">404</h1>
         <h2 className="mt-4 text-xl font-semibold">Page not found</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          This route doesn't exist in your NewsMentor workspace.
+          This route doesn't exist in your UPSC Hero workspace.
         </p>
         <div className="mt-6">
           <Link
@@ -71,15 +71,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "NewsMentor Daily — Complete UPSC Preparation Companion" },
+      { title: "UPSC Hero by Biswajit — Complete UPSC Preparation Companion" },
       {
         name: "description",
         content:
           "Your all-in-one UPSC prep workspace: daily current affairs, syllabus planner, PYQ bank, mock tests, answer writing and AI mentor — designed for serious aspirants.",
       },
-      { property: "og:site_name", content: "NewsMentor Daily" },
+      { property: "og:site_name", content: "UPSC Hero by Biswajit" },
       { property: "og:type", content: "website" },
-      { property: "og:title", content: "NewsMentor Daily — Complete UPSC Preparation Companion" },
+      { property: "og:title", content: "UPSC Hero by Biswajit — Complete UPSC Preparation Companion" },
       {
         property: "og:description",
         content: "Daily current affairs, syllabus planner, PYQs, mock tests, and mentor — one workspace.",

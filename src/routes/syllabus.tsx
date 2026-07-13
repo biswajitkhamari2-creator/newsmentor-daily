@@ -12,7 +12,7 @@ import { askMentor } from "@/lib/api";
 export const Route = createFileRoute("/syllabus")({
   head: () => ({
     meta: [
-      { title: "Syllabus — NewsMentor Daily" },
+      { title: "Syllabus — UPSC Hero by Biswajit" },
       { name: "description", content: "Search the official UPSC CSE syllabus (Prelims + Mains GS I–IV) and ask AI whether any topic is inside the syllabus." },
     ],
   }),

@@ -5,8 +5,8 @@ import { BookOpen, Compass, Feather, Sparkles } from "lucide-react";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About — NewsMentor Daily" },
-      { name: "description", content: "NewsMentor Daily is a focused, respectful workspace for UPSC aspirants — daily current affairs, syllabus tracking, PYQs, mock tests and a mentor." },
+      { title: "About — UPSC Hero by Biswajit" },
+      { name: "description", content: "UPSC Hero by Biswajit is a focused, respectful workspace for UPSC aspirants — daily current affairs, syllabus tracking, PYQs, mock tests and a mentor." },
     ],
   }),
   component: About,
@@ -21,7 +21,7 @@ function About() {
           Built for the <span className="italic text-gold">quiet, disciplined</span> hours of UPSC prep.
         </h1>
         <p className="text-lg text-muted-foreground mt-6 leading-relaxed">
-          NewsMentor Daily is the workspace we wished we had while preparing —
+          UPSC Hero by Biswajit is the workspace we wished we had while preparing —
           the newspaper, syllabus, PYQ bank, mock tests and a patient mentor,
           arranged so nothing gets in the way of the work itself.
         </p>

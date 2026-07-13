@@ -18,7 +18,7 @@ import { fetchMcqs, fetchMains, type LiveMcq, type LiveMains } from "@/lib/api";
 export const Route = createFileRoute("/pyq")({
   head: () => ({
     meta: [
-      { title: "PYQ Bank & Mock Tests — NewsMentor Daily" },
+      { title: "PYQ Bank & Mock Tests — UPSC Hero by Biswajit" },
       { name: "description", content: "Searchable UPSC previous year questions (2020–2024) with model answers, plus timed prelims & mains mock tests." },
     ],
   }),
