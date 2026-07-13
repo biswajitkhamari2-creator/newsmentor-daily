@@ -13,6 +13,7 @@ import { headlines, todaysPlan, syllabus, mockTests, type SyllabusPaper, type Sy
 import { syllabusDetail, paperOverview } from "@/data/syllabusDetail";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
 import { fetchLatestNews } from "@/lib/news.functions";
+import { fetchPrelimsFacts } from "@/lib/facts.functions";
 import { usePlannerStore } from "@/hooks/usePlannerStore";
 
 export const Route = createFileRoute("/")({
@@ -53,6 +54,82 @@ const recentActivity = [
   { action: "Bookmarked", target: "Art. 280 — Finance Commission", when: "4 hr ago", icon: Bookmark },
   { action: "Wrote answer on", target: "Cooperative Federalism", when: "Yesterday", icon: PenLine },
 ];
+
+function FactsRotator() {
+  const { data } = useQuery({
+    queryKey: ["prelims-facts"],
+    queryFn: () => fetchPrelimsFacts(),
+    staleTime: 10 * 60_000,
+    refetchInterval: 10 * 60_000,
+  });
+  const pool = (data && data.length >= 5) ? data : [
+    { k: "Repo rate", v: "6.5% (unchanged)" },
+    { k: "Green H₂ target", v: "5 MMT by 2030" },
+    { k: "15th FC devolution", v: "41% of central taxes" },
+    { k: "Wassenaar members", v: "42 states" },
+    { k: "Gaganyaan launcher", v: "Human-rated LVM3" },
+  ];
+  const SLOTS = 5;
+  const [indices, setIndices] = useState<number[]>(() =>
+    Array.from({ length: SLOTS }, (_, i) => i % Math.max(pool.length, 1))
+  );
+  const [blink, setBlink] = useState<number>(-1);
+
+  useEffect(() => {
+    setIndices(Array.from({ length: SLOTS }, (_, i) => i % Math.max(pool.length, 1)));
+  }, [pool.length]);
+
+  useEffect(() => {
+    if (pool.length <= SLOTS) return;
+    let slot = 0;
+    const id = setInterval(() => {
+      const s = slot % SLOTS;
+      setBlink(s);
+      setTimeout(() => {
+        setIndices((prev) => {
+          const used = new Set(prev);
+          let next = (prev[s] + SLOTS) % pool.length;
+          let guard = 0;
+          while (used.has(next) && guard++ < pool.length) next = (next + 1) % pool.length;
+          const copy = [...prev];
+          copy[s] = next;
+          return copy;
+        });
+        setBlink(-1);
+      }, 260);
+      slot++;
+    }, 2200);
+    return () => clearInterval(id);
+  }, [pool.length]);
+
+  return (
+    <div className="space-y-3 text-sm">
+      {indices.map((idx, i) => {
+        const f = pool[idx] ?? pool[0];
+        const isBlink = blink === i;
+        return (
+          <div
+            key={i}
+            className="flex justify-between gap-2 border-b border-dashed pb-2 last:border-0 animate-fade-in-up"
+            style={{ animationDelay: `${200 + i * 80}ms` }}
+          >
+            <span className="text-muted-foreground shrink-0">{f.k}</span>
+            <span
+              className={`font-medium text-right transition-all duration-300 ${
+                isBlink ? "opacity-0 blur-sm translate-y-1" : "opacity-100 blur-0 translate-y-0"
+              }`}
+              style={{
+                textShadow: isBlink ? "none" : "0 0 0 transparent",
+              }}
+            >
+              {f.v}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 function Dashboard() {
   const { streak, tasks: plannerTasks, weeklyGoalHrs, syllabus: liveSyllabus } = usePlannerStore();
@@ -503,21 +580,17 @@ function Dashboard() {
           </div>
 
           <div className="card-premium p-6 animate-fade-in-up" style={{ animationDelay: "150ms" }}>
-            <h3 className="font-serif text-2xl mb-4">Facts for Prelims</h3>
-            <div className="space-y-3 text-sm">
-              {[
-                { k: "Repo rate", v: "6.5% (unchanged)" },
-                { k: "Green H₂ target", v: "5 MMT by 2030" },
-                { k: "15th FC devolution", v: "41% of central taxes" },
-                { k: "Wassenaar members", v: "42 states" },
-                { k: "Gaganyaan launcher", v: "Human-rated LVM3" },
-              ].map((f, i) => (
-                <div key={f.k} className="flex justify-between gap-2 border-b border-dashed pb-2 last:border-0 animate-fade-in-up" style={{ animationDelay: `${200 + i * 80}ms` }}>
-                  <span className="text-muted-foreground">{f.k}</span>
-                  <span className="font-medium text-right">{f.v}</span>
-                </div>
-              ))}
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-serif text-2xl">Facts for Prelims</h3>
+              <span className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.2em] text-emerald-600">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75 animate-ping" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                </span>
+                Live
+              </span>
             </div>
+            <FactsRotator />
           </div>
         </section>
       </div>
