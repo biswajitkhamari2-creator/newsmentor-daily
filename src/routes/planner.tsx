@@ -122,8 +122,6 @@ function Planner() {
           </Card>
         </aside>
       </div>
-        </aside>
-      </div>
 
       <Dialog open={!!openTopic} onOpenChange={(o) => !o && setOpenTopic(null)}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
