@@ -9,7 +9,7 @@ import {
   ArrowRight, Flame, Target, Clock, TrendingUp, BookOpen, CheckCircle2, Circle, Radio,
   Zap, Award, Quote, Activity, BarChart3, ChevronRight, ChevronDown, Bookmark, Play, Moon,
 } from "lucide-react";
-import { headlines, todaysPlan, syllabus, type SyllabusPaper, type SyllabusTopic } from "@/data/mock";
+import { headlines, todaysPlan, syllabus, mockTests, type SyllabusPaper, type SyllabusTopic } from "@/data/mock";
 import { syllabusDetail, paperOverview } from "@/data/syllabusDetail";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
 import { fetchLatestNews } from "@/lib/news.functions";
