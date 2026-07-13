@@ -192,6 +192,27 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0.2; }
 }
+@keyframes blink-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+@keyframes hue-cycle {
+  0%   { color: #c9a84c; }
+  16%  { color: #e94b6a; }
+  33%  { color: #b45cff; }
+  50%  { color: #3ba7ff; }
+  66%  { color: #22c58a; }
+  83%  { color: #f39c12; }
+  100% { color: #c9a84c; }
+}
+
+@utility animate-blink-soft {
+  animation: blink-soft 1.4s ease-in-out infinite;
+}
+@utility animate-hue-cycle {
+  animation: hue-cycle 6s linear infinite;
+  font-weight: 600;
+}
 
 @utility animate-fade-in {
   animation: fade-in 0.5s ease-out both;
