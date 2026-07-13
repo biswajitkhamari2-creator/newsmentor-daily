@@ -145,7 +145,7 @@ function Dashboard() {
             </div>
             <div className="relative flex-1 overflow-hidden py-2.5">
               <div className="flex gap-10 whitespace-nowrap animate-marquee w-max">
-                {[...ticker, ...ticker].map((t, i) => (
+                {[...tickerItems, ...tickerItems].map((t, i) => (
                   <span key={i} className="text-sm text-foreground/80 inline-flex items-center gap-2">
                     <span className="h-1 w-1 rounded-full bg-gold" /> {t}
                   </span>
