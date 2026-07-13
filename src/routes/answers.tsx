@@ -1,14 +1,12 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { PenLine, Timer, CheckCircle2, Sparkles, Loader2, AlertCircle, LogIn } from "lucide-react";
+import { PenLine, Timer, CheckCircle2, Sparkles, Loader2, AlertCircle } from "lucide-react";
 import { evaluateAnswer } from "@/lib/api";
-import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/answers")({
   head: () => ({
@@ -35,16 +33,10 @@ const prompt = {
   ],
 };
 
-type Submission = {
-  id: string;
-  question: string;
-  feedback: string;
-  created_at: string;
-  word_count: number;
-};
+type Submission = { id: number; title: string; when: string; feedback: string; words: number };
+const LS_KEY = "nm.answers.history";
 
 function AnswerWriting() {
-  const { user, loading: authLoading } = useAuth();
   const [text, setText] = useState("");
   const words = text.trim().split(/\s+/).filter(Boolean).length;
   const target = 250;
@@ -54,40 +46,23 @@ function AnswerWriting() {
   const [history, setHistory] = useState<Submission[]>([]);
 
   useEffect(() => {
-    if (!user) { setHistory([]); return; }
-    supabase
-      .from("answer_submissions")
-      .select("id, question, feedback, created_at, word_count")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(10)
-      .then(({ data, error }) => {
-        if (error) console.error(error);
-        else setHistory((data as Submission[]) ?? []);
-      });
-  }, [user]);
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      if (raw) setHistory(JSON.parse(raw));
+    } catch { /* ignore */ }
+  }, []);
+
+  const persist = (next: Submission[]) => {
+    setHistory(next);
+    try { localStorage.setItem(LS_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+  };
 
   const submit = async () => {
-    if (!user) return;
     setLoading(true); setError(null); setFeedback(null);
     try {
       const md = await evaluateAnswer(prompt.question, text);
       setFeedback(md);
-      const { data, error: dbErr } = await supabase
-        .from("answer_submissions")
-        .insert({
-          user_id: user.id,
-          question: prompt.question,
-          answer: text,
-          feedback: md,
-          word_count: words,
-          paper: prompt.paper,
-          marks: prompt.marks,
-        })
-        .select("id, question, feedback, created_at, word_count")
-        .single();
-      if (dbErr) console.error(dbErr);
-      else if (data) setHistory((h) => [data as Submission, ...h].slice(0, 10));
+      persist([{ id: Date.now(), title: prompt.question, when: new Date().toLocaleString(), feedback: md, words }, ...history].slice(0, 10));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Evaluation failed");
     } finally {
@@ -104,16 +79,6 @@ function AnswerWriting() {
           One question a day. Timer, word tracker, structured hints — then compare with a model answer.
         </p>
       </header>
-
-      {!authLoading && !user && (
-        <div className="rounded-lg border border-gold/40 bg-gold/5 p-4 flex flex-wrap items-center gap-3">
-          <LogIn className="h-4 w-4 text-gold" />
-          <span className="text-sm">Sign in to save your submissions and track progress.</span>
-          <Button asChild size="sm" className="ml-auto bg-gold text-gold-foreground hover:bg-gold/90">
-            <Link to="/auth">Sign in</Link>
-          </Button>
-        </div>
-      )}
 
       <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
         <Card className="shadow-sm">
@@ -140,7 +105,7 @@ function AnswerWriting() {
                 </div>
                 <Progress value={Math.min(100, (words / target) * 100)} className="h-1.5" />
               </div>
-              <Button onClick={submit} disabled={words < 20 || loading || !user} className="bg-gold text-gold-foreground hover:bg-gold/90">
+              <Button onClick={submit} disabled={words < 20 || loading} className="bg-gold text-gold-foreground hover:bg-gold/90">
                 {loading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <CheckCircle2 className="h-4 w-4 mr-1" />}
                 {loading ? "Evaluating…" : "Submit for AI review"}
               </Button>
@@ -179,20 +144,15 @@ function AnswerWriting() {
           </Card>
 
           <Card className="shadow-sm">
-            <CardHeader className="pb-3"><CardTitle className="font-serif text-xl flex items-center gap-2"><PenLine className="h-4 w-4 text-gold" /> Your submissions</CardTitle></CardHeader>
+            <CardHeader className="pb-3"><CardTitle className="font-serif text-xl flex items-center gap-2"><PenLine className="h-4 w-4 text-gold" /> Recent submissions</CardTitle></CardHeader>
             <CardContent className="space-y-3">
-              {!user && (
-                <p className="text-xs text-muted-foreground">Sign in to view your submission history.</p>
-              )}
-              {user && history.length === 0 && (
-                <p className="text-xs text-muted-foreground">No submissions yet. Write one above to get started.</p>
+              {history.length === 0 && (
+                <p className="text-xs text-muted-foreground">Your submissions are saved on this device.</p>
               )}
               {history.map((s) => (
                 <div key={s.id} className="border-b last:border-0 pb-3 last:pb-0">
-                  <div className="text-sm line-clamp-2">{s.question}</div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {new Date(s.created_at).toLocaleString()} · {s.word_count} words
-                  </div>
+                  <div className="text-sm line-clamp-2">{s.title}</div>
+                  <div className="text-xs text-muted-foreground mt-1">{s.when} · {s.words} words</div>
                 </div>
               ))}
             </CardContent>
