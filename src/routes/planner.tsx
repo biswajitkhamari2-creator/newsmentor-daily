@@ -9,9 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { CalendarCheck2, Target, Flame, Plus, BookOpen, Trash2, Minus, Pencil } from "lucide-react";
+import { CalendarCheck2, Target, Flame, Plus, BookOpen, Trash2, Minus, Pencil, GraduationCap } from "lucide-react";
 import { type Task } from "@/data/mock";
 import { syllabusDetail } from "@/data/syllabusDetail";
+import { subjects, type SubjectEntry } from "@/data/subjectMap";
 import { usePlannerStore } from "@/hooks/usePlannerStore";
 
 export const Route = createFileRoute("/planner")({
