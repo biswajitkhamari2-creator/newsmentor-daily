@@ -1,14 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Search, Sparkles, Loader2, BookOpen, CheckCircle2, XCircle, AlertCircle, ChevronDown, ChevronRight, ArrowRight, Gauge } from "lucide-react";
-import { syllabus, type SyllabusTopic } from "@/data/mock";
+import { syllabus, mockTests, type SyllabusTopic } from "@/data/mock";
 import { syllabusDetail, paperOverview } from "@/data/syllabusDetail";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
 import { askMentor } from "@/lib/api";
+import { usePlannerStore } from "@/hooks/usePlannerStore";
+
 
 
 export const Route = createFileRoute("/syllabus")({
@@ -45,13 +47,46 @@ function SyllabusPage() {
   const [aiBusy, setAiBusy] = useState(false);
   const [aiAnswer, setAiAnswer] = useState<string | null>(null);
   const [expandedPaper, setExpandedPaper] = useState<string | null>(syllabus[0]?.id ?? null);
+  const [aiVerdict, setAiVerdict] = useState<Verdict | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
+
+  // Live tick — repaints the "updated Xs ago" label so it feels live.
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 15_000);
+    const onStorage = () => setTick((t) => t + 1);
+    window.addEventListener("storage", onStorage);
+    return () => { clearInterval(id); window.removeEventListener("storage", onStorage); };
+  }, []);
+
+  const { syllabus: liveSyllabus, tasks: plannerTasks } = usePlannerStore();
+
+  // Build a topicId -> live % map from the planner store's merged syllabus.
+  const liveProgress = useMemo(() => {
+    const m: Record<string, number> = {};
+    liveSyllabus.forEach((p) => p.topics.forEach((t) => { m[t.id] = t.progress; }));
+    return m;
+  }, [liveSyllabus]);
+
+  const liveTopicPct = (t: SyllabusTopic) => {
+    const p = liveProgress[t.id];
+    return typeof p === "number" && p > 0 ? p : t.progress;
+  };
+  const livePaperPct = (paperTopics: SyllabusTopic[]) =>
+    Math.round(paperTopics.reduce((s, t) => s + liveTopicPct(t), 0) / paperTopics.length);
+
   const overall = Math.round(
-    syllabus.flatMap((p) => p.topics).reduce((s, t) => s + t.progress, 0) /
+    syllabus.flatMap((p) => p.topics).reduce((s, t) => s + liveTopicPct(t), 0) /
       syllabus.flatMap((p) => p.topics).length,
   );
 
-  const [aiVerdict, setAiVerdict] = useState<Verdict | null>(null);
-  const [aiError, setAiError] = useState<string | null>(null);
+
+  // Live signals
+  const attempted = mockTests.filter((m) => m.attempted).length;
+  const doneToday = plannerTasks.filter((t) => t.done).length;
+  const lastSync = new Date();
+
+
 
   const matches = useMemo<Match[]>(() => {
     const q = query.trim().toLowerCase();
@@ -114,24 +149,37 @@ Study tip: <1 line on how to approach it, or say "Not required" if outside sylla
         </p>
       </header>
 
-      {/* Syllabus snapshot */}
+      {/* Syllabus snapshot — live */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center justify-between gap-2 text-base">
             <span className="flex items-center gap-2">
               <Gauge className="h-4 w-4 text-gold" /> Syllabus snapshot
+              <span className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.22em] text-success font-normal ml-1">
+                <span className="relative inline-flex h-1.5 w-1.5">
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-success opacity-75 animate-ping" />
+                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-success" />
+                </span>
+                Live
+              </span>
             </span>
             <span className="text-xs font-normal text-muted-foreground tabular-nums">
               Overall <AnimatedCounter value={overall} suffix="%" />
             </span>
           </CardTitle>
+          <div className="text-[11px] text-muted-foreground pt-1 flex flex-wrap gap-x-3 gap-y-1">
+            <span>Synced from planner · {doneToday} task{doneToday === 1 ? "" : "s"} done today</span>
+            <span>·</span>
+            <span>{attempted} mock{attempted === 1 ? "" : "s"} attempted</span>
+            <span>·</span>
+            <span>Updated {lastSync.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}</span>
+          </div>
         </CardHeader>
         <CardContent className="space-y-3">
           {syllabus.map((paper, i) => {
-            const avg = Math.round(
-              paper.topics.reduce((s, t) => s + t.progress, 0) / paper.topics.length,
-            );
+            const avg = livePaperPct(paper.topics);
             const isOpen = expandedPaper === paper.id;
+
             return (
               <div key={paper.id} className="rounded-lg border bg-card/50">
                 <button
@@ -176,11 +224,12 @@ Study tip: <1 line on how to approach it, or say "Not required" if outside sylla
                           <ChevronRight className="h-3.5 w-3.5 text-muted-foreground group-hover:text-gold transition shrink-0" />
                         </div>
                         <div className="mt-1.5 h-1 rounded-full bg-muted overflow-hidden">
-                          <div className="h-full gradient-emerald" style={{ width: `${t.progress}%` }} />
+                          <div className="h-full gradient-emerald" style={{ width: `${liveTopicPct(t)}%` }} />
                         </div>
                         <div className="mt-1 text-[10px] text-muted-foreground tabular-nums">
-                          {t.progress}%
+                          {liveTopicPct(t)}%
                         </div>
+
                       </button>
                     ))}
                   </div>
