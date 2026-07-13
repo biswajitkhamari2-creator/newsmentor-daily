@@ -1,13 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import {
   Newspaper, CalendarCheck2, FileQuestion, PenLine, Sparkles,
   ArrowRight, Flame, Target, Clock, TrendingUp, BookOpen, CheckCircle2, Circle, Radio,
-  Zap, Award, Quote, Activity, BarChart3, ChevronRight, Bookmark, Play,
+  Zap, Award, Quote, Activity, BarChart3, ChevronRight, ChevronDown, Bookmark, Play,
 } from "lucide-react";
-import { headlines, todaysPlan, syllabus } from "@/data/mock";
+import { headlines, todaysPlan, syllabus, type SyllabusPaper, type SyllabusTopic } from "@/data/mock";
+import { syllabusDetail, paperOverview } from "@/data/syllabusDetail";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
 import { fetchLatestNews } from "@/lib/news.functions";
 
@@ -68,6 +71,9 @@ function Dashboard() {
   const tickerItems = (liveNews && liveNews.length > 0)
     ? liveNews.map((n) => n.title)
     : ticker;
+
+  const [expandedPaper, setExpandedPaper] = useState<string | null>(syllabus[0]?.id ?? null);
+  const [openTopic, setOpenTopic] = useState<{ topic: SyllabusTopic; paper: SyllabusPaper } | null>(null);
 
   return (
     <div className="relative">
@@ -371,20 +377,55 @@ function Dashboard() {
               <BookOpen className="h-5 w-5 text-gold" />
               <h3 className="font-serif text-2xl">Syllabus snapshot</h3>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-3">
               {syllabus.map((paper, i) => {
                 const avg = Math.round(paper.topics.reduce((s, t) => s + t.progress, 0) / paper.topics.length);
+                const isOpen = expandedPaper === paper.id;
                 return (
-                  <div key={paper.id} style={{ animationDelay: `${i * 90}ms` }} className="animate-fade-in-up">
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="font-medium">{paper.name}</span>
-                      <span className="text-muted-foreground tabular-nums">
-                        <AnimatedCounter value={avg} suffix="%" />
-                      </span>
-                    </div>
-                    <div className="h-2 rounded-full bg-muted overflow-hidden">
-                      <div className="h-full rounded-full gradient-gold animate-bar" style={{ width: `${avg}%`, animationDelay: `${i * 90 + 200}ms` }} />
-                    </div>
+                  <div key={paper.id} style={{ animationDelay: `${i * 90}ms` }} className="animate-fade-in-up rounded-lg border bg-card/50">
+                    <button
+                      type="button"
+                      onClick={() => setExpandedPaper(isOpen ? null : paper.id)}
+                      className="w-full text-left p-3 hover:bg-muted/40 rounded-lg transition"
+                      aria-expanded={isOpen}
+                    >
+                      <div className="flex justify-between text-sm mb-1.5 items-center gap-2">
+                        <span className="font-medium flex items-center gap-1.5 min-w-0">
+                          <ChevronDown className={`h-4 w-4 text-gold shrink-0 transition-transform ${isOpen ? "" : "-rotate-90"}`} />
+                          <span className="truncate">{paper.name}</span>
+                        </span>
+                        <span className="text-muted-foreground tabular-nums text-xs shrink-0">
+                          <AnimatedCounter value={avg} suffix="%" />
+                        </span>
+                      </div>
+                      <div className="h-2 rounded-full bg-muted overflow-hidden">
+                        <div className="h-full rounded-full gradient-gold animate-bar" style={{ width: `${avg}%`, animationDelay: `${i * 90 + 200}ms` }} />
+                      </div>
+                    </button>
+
+                    {isOpen && (
+                      <div className="px-3 pb-3 pt-1 grid gap-2 sm:grid-cols-2 animate-fade-in-up">
+                        {paper.topics.map((t) => (
+                          <button
+                            key={t.id}
+                            type="button"
+                            onClick={() => setOpenTopic({ topic: t, paper })}
+                            className="group text-left rounded-md border p-2.5 hover:border-gold/60 hover:shadow-sm transition focus:outline-none focus:ring-2 focus:ring-gold/40"
+                          >
+                            <div className="flex items-center justify-between gap-2 text-xs">
+                              <span className="font-medium flex items-center gap-1.5 min-w-0">
+                                <BookOpen className="h-3 w-3 text-gold/70 shrink-0" />
+                                <span className="truncate">{t.name}</span>
+                              </span>
+                              <ChevronRight className="h-3.5 w-3.5 text-muted-foreground group-hover:text-gold transition shrink-0" />
+                            </div>
+                            <div className="mt-1.5 h-1 rounded-full bg-muted overflow-hidden">
+                              <div className="h-full gradient-emerald" style={{ width: `${t.progress}%` }} />
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -413,6 +454,50 @@ function Dashboard() {
           </div>
         </section>
       </div>
+
+      <Dialog open={!!openTopic} onOpenChange={(o) => !o && setOpenTopic(null)}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          {openTopic && (() => {
+            const detail = syllabusDetail[openTopic.topic.id];
+            const overview = paperOverview[openTopic.paper.id];
+            return (
+              <>
+                <DialogHeader>
+                  <div className="text-[11px] uppercase tracking-[0.2em] text-gold">{openTopic.paper.name}</div>
+                  <DialogTitle className="font-serif text-2xl sm:text-3xl mt-1">{openTopic.topic.name}</DialogTitle>
+                  {detail?.paperRef && (
+                    <DialogDescription className="text-xs">
+                      <Badge variant="outline" className="border-primary/30 text-primary">{detail.paperRef}</Badge>
+                    </DialogDescription>
+                  )}
+                </DialogHeader>
+                {overview && (
+                  <p className="text-sm text-muted-foreground border-l-2 border-gold/40 pl-3 italic">{overview}</p>
+                )}
+                <div className="mt-2">
+                  <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Official UPSC syllabus points</div>
+                  {detail ? (
+                    <ul className="space-y-2.5">
+                      {detail.points.map((p, i) => (
+                        <li key={i} className="flex gap-2.5 text-sm leading-relaxed">
+                          <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-gold shrink-0" />
+                          <span>{p}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Detailed points for this topic are being added shortly.</p>
+                  )}
+                </div>
+                <div className="flex items-center justify-between mt-4 pt-4 border-t text-xs text-muted-foreground">
+                  <span>Your progress</span>
+                  <span className="font-medium text-foreground">{openTopic.topic.progress}%</span>
+                </div>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
