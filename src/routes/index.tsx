@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -8,6 +9,7 @@ import {
 } from "lucide-react";
 import { headlines, todaysPlan, syllabus } from "@/data/mock";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
+import { fetchLatestNews } from "@/lib/news.functions";
 
 export const Route = createFileRoute("/")({
   head: () => ({
