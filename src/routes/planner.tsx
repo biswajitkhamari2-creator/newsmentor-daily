@@ -56,6 +56,8 @@ function Planner() {
 
   const todaySubject = todayKey ? subjects.find((s) => s.key === todayKey) ?? null : null;
 
+  const done = tasks.filter((t) => t.done).length;
+
   const overall = useMemo(() => {
     const all = syllabus.flatMap((p) => p.topics);
     if (!all.length) return 0;
