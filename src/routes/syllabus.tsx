@@ -70,7 +70,7 @@ function SyllabusPage() {
 
   const liveTopicPct = (t: SyllabusTopic) => {
     const p = liveProgress[t.id];
-    return typeof p === "number" && p > 0 ? p : t.progress;
+    return typeof p === "number" ? p : 0;
   };
   const livePaperPct = (paperTopics: SyllabusTopic[]) =>
     Math.round(paperTopics.reduce((s, t) => s + liveTopicPct(t), 0) / paperTopics.length);
