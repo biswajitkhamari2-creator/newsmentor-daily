@@ -271,7 +271,7 @@ function Planner() {
 
       <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
         <div className="space-y-4">
-          {syllabus.map((paper) => {
+          {!todaySubject && syllabus.map((paper) => {
             const avg = Math.round(paper.topics.reduce((s, t) => s + t.progress, 0) / paper.topics.length);
             return (
               <Card key={paper.id} className="shadow-sm">
