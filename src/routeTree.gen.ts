@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SyllabusRouteImport } from './routes/syllabus'
-import { Route as SyllabusRouteImport } from './routes/syllabus'
 import { Route as RevisionRouteImport } from './routes/revision'
 import { Route as PyqRouteImport } from './routes/pyq'
 import { Route as PlannerRouteImport } from './routes/planner'
@@ -21,11 +20,6 @@ import { Route as AnswersRouteImport } from './routes/answers'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
-const SyllabusRoute = SyllabusRouteImport.update({
-  id: '/syllabus',
-  path: '/syllabus',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SyllabusRoute = SyllabusRouteImport.update({
   id: '/syllabus',
   path: '/syllabus',
