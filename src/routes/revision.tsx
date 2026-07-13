@@ -4,8 +4,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { RotateCcw, BookOpen, CheckCircle2, Sparkles, CalendarDays } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { RotateCcw, BookOpen, CheckCircle2, Sparkles, CalendarDays, Library, TrendingUp, FileText } from "lucide-react";
 import { subjects } from "@/data/subjectMap";
+import { syllabus, pyqs, type SyllabusTopic } from "@/data/mock";
+import { syllabusDetail } from "@/data/syllabusDetail";
+
+// Map each topic id to the PYQ `subject` strings that count as "this topic".
+const topicPyqSubjects: Record<string, string[]> = {
+  t1: ["History"], t2: ["History"], t3: ["History"], t4: ["History"],
+  t5: ["Society"], t6: ["Geography"],
+  t7: ["Polity"], t8: ["Governance"], t9: ["IR"], t10: ["Governance"],
+  t11: ["Economy"], t12: ["Environment"], t13: ["Science & Tech"],
+  t14: ["Security"], t15: ["Disaster"],
+  t16: ["Ethics"], t17: ["Ethics"], t18: ["Ethics"],
+};
+
 
 export const Route = createFileRoute("/revision")({
   head: () => ({
@@ -34,6 +48,7 @@ function Revision() {
   const [archive, setArchive] = useState<ArchiveItem[]>([]);
   const [revised, setRevised] = useState<Record<string, string>>({}); // id -> lastRevisedAt
   const [filter, setFilter] = useState<string | null>(null);
+  const [activeTopic, setActiveTopic] = useState<SyllabusTopic | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -77,18 +92,6 @@ function Revision() {
 
   if (!ready) return <div className="px-6 py-10 text-muted-foreground">Loading…</div>;
 
-  if (archive.length === 0) {
-    return (
-      <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-3xl mx-auto">
-        <div className="text-xs uppercase tracking-[0.3em] text-gold">Revision</div>
-        <h1 className="font-serif text-4xl sm:text-5xl mt-1">Nothing to revise yet</h1>
-        <p className="text-muted-foreground mt-3">
-          Head to <span className="font-medium">Study Planner</span>, pick a subject for today, and tick off syllabus points as you study them.
-          They'll show up here for spaced revision from the next day.
-        </p>
-      </div>
-    );
-  }
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6 max-w-[1100px] mx-auto">
@@ -130,6 +133,7 @@ function Revision() {
         </Card>
       )}
 
+      {archive.length > 0 && (
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between flex-wrap gap-2">
@@ -158,6 +162,138 @@ function Revision() {
             ))}
         </CardContent>
       </Card>
+      )}
+
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between flex-wrap gap-2">
+            <div>
+              <CardTitle className="font-serif text-2xl flex items-center gap-2">
+                <Library className="h-5 w-5 text-gold" /> Syllabus
+              </CardTitle>
+              <p className="text-xs text-muted-foreground mt-1">
+                Tap any topic for the deep official syllabus and a breakdown of how it's been asked in previous years.
+              </p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {syllabus.map((paper) => (
+            <div key={paper.id}>
+              <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">{paper.name}</div>
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {paper.topics.map((t) => {
+                  const pyqCount = pyqs.filter((q) => (topicPyqSubjects[t.id] ?? []).includes(q.subject)).length;
+                  return (
+                    <button
+                      key={t.id}
+                      onClick={() => setActiveTopic(t)}
+                      className="text-left rounded-lg border p-3 hover:border-gold hover:bg-gold/5 transition"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="text-sm font-medium">{t.name}</div>
+                        {pyqCount > 0 && (
+                          <Badge variant="outline" className="text-[10px] shrink-0">{pyqCount} PYQ</Badge>
+                        )}
+                      </div>
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground mt-1">Tap for depth</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      <Dialog open={!!activeTopic} onOpenChange={(o) => !o && setActiveTopic(null)}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+          {activeTopic && (() => {
+            const detail = syllabusDetail[activeTopic.id];
+            const matchedPyqs = pyqs.filter((q) => (topicPyqSubjects[activeTopic.id] ?? []).includes(q.subject));
+            const yearGroups = matchedPyqs.reduce<Record<number, typeof matchedPyqs>>((acc, q) => {
+              (acc[q.year] ??= []).push(q); return acc;
+            }, {});
+            const years = Object.keys(yearGroups).map(Number).sort((a, b) => b - a);
+            const prelimsCount = matchedPyqs.filter((q) => q.paper === "Prelims").length;
+            const mainsCount = matchedPyqs.length - prelimsCount;
+            return (
+              <>
+                <DialogHeader>
+                  {detail?.paperRef && (
+                    <Badge variant="outline" className="border-gold/50 text-gold w-fit">{detail.paperRef}</Badge>
+                  )}
+                  <DialogTitle className="font-serif text-3xl mt-2">{activeTopic.name}</DialogTitle>
+                  <DialogDescription>Deep official syllabus + previous-year question analysis.</DialogDescription>
+                </DialogHeader>
+
+                <section className="mt-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FileText className="h-4 w-4 text-gold" />
+                    <div className="font-medium">Official syllabus (deep)</div>
+                  </div>
+                  {detail ? (
+                    <ul className="space-y-2 rounded-lg border p-4 bg-card">
+                      {detail.points.map((p, i) => (
+                        <li key={i} className="flex gap-2 text-sm leading-relaxed text-muted-foreground">
+                          <span className="mt-2 h-1.5 w-1.5 rounded-full bg-gold shrink-0" />
+                          <span>{p}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-muted-foreground italic">Deep points coming soon.</p>
+                  )}
+                  <p className="text-[11px] text-muted-foreground mt-2 italic">
+                    Re-upload your syllabus PDF in chat and I'll layer its notes into this view.
+                  </p>
+                </section>
+
+                <section className="mt-6">
+                  <div className="flex items-center gap-2 mb-2">
+                    <TrendingUp className="h-4 w-4 text-gold" />
+                    <div className="font-medium">Previous-year analysis</div>
+                  </div>
+                  {matchedPyqs.length === 0 ? (
+                    <p className="text-sm text-muted-foreground italic">No PYQs indexed for this topic yet.</p>
+                  ) : (
+                    <>
+                      <div className="flex gap-2 flex-wrap mb-3">
+                        <Badge variant="outline">{matchedPyqs.length} total</Badge>
+                        <Badge variant="outline">Prelims: {prelimsCount}</Badge>
+                        <Badge variant="outline">Mains: {mainsCount}</Badge>
+                        <Badge variant="outline">Years: {years.join(", ")}</Badge>
+                      </div>
+                      <div className="space-y-3">
+                        {years.map((year) => (
+                          <div key={year} className="rounded-lg border p-3 bg-card">
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="font-serif text-lg">{year}</div>
+                              <Badge variant="outline" className="text-[10px]">{yearGroups[year].length} question{yearGroups[year].length > 1 ? "s" : ""}</Badge>
+                            </div>
+                            <ul className="space-y-2">
+                              {yearGroups[year].map((q) => (
+                                <li key={q.id} className="text-sm">
+                                  <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                                    <Badge variant="outline" className="text-[10px]">{q.paper}</Badge>
+                                    {q.marks && <span className="text-[10px] text-muted-foreground">{q.marks} marks</span>}
+                                  </div>
+                                  <div className="leading-relaxed">{q.question}</div>
+                                  <div className="text-xs text-muted-foreground italic mt-1">Hint: {q.hint}</div>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </section>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
