@@ -26,6 +26,7 @@ import {
   Flame,
   Search,
   Building2,
+  RotateCcw,
 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { Input } from "@/components/ui/input";
@@ -37,6 +38,7 @@ const nav = [
   { title: "Current Affairs", url: "/current-affairs", icon: Newspaper },
   { title: "Institutional Engine", url: "/institutions", icon: Building2 },
   { title: "Study Planner", url: "/planner", icon: CalendarCheck2 },
+  { title: "Revision", url: "/revision", icon: RotateCcw },
   { title: "PYQ & Tests", url: "/pyq", icon: FileQuestion },
   { title: "Answer Writing", url: "/answers", icon: PenLine },
   { title: "AI Mentor", url: "/mentor", icon: Sparkles },
