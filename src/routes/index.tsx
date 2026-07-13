@@ -133,7 +133,16 @@ function Dashboard() {
                 {typedDone && isNight && (
                   <Moon className="h-8 w-8 sm:h-10 sm:w-10 text-gold animate-moon-glow" fill="currentColor" strokeWidth={1.2} />
                 )}
-                <span>, <span className="italic animate-hue-cycle">Aspirant</span>.</span>
+                <span>,{" "}
+                  <span className="italic inline-flex">
+                    {nameTyped.split("").map((ch, i) => (
+                      <span key={i} style={{ color: letterColors[i % letterColors.length] }} className="animate-fade-in inline-block">
+                        {ch}
+                      </span>
+                    ))}
+                    {typedDone && !nameDone && <span className="inline-block w-[3px] h-[0.9em] align-middle bg-gold ml-1 animate-blink-soft" />}
+                  </span>.
+                </span>
               </h1>
               <p className="mt-3 max-w-lg text-primary-foreground/75 text-sm sm:text-base">
                 {totalToday === 0
