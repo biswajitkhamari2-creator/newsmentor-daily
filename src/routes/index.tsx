@@ -1,13 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import {
   Newspaper, CalendarCheck2, FileQuestion, PenLine, Sparkles,
   ArrowRight, Flame, Target, Clock, TrendingUp, BookOpen, CheckCircle2, Circle, Radio,
-  Zap, Award, Quote, Activity, BarChart3, ChevronRight, ChevronDown, Bookmark, Play,
+  Zap, Award, Quote, Activity, BarChart3, ChevronRight, ChevronDown, Bookmark, Play, Moon,
 } from "lucide-react";
 import { headlines, todaysPlan, syllabus, type SyllabusPaper, type SyllabusTopic } from "@/data/mock";
 import { syllabusDetail, paperOverview } from "@/data/syllabusDetail";
@@ -78,6 +78,21 @@ function Dashboard() {
   const [expandedPaper, setExpandedPaper] = useState<string | null>(syllabus[0]?.id ?? null);
   const [openTopic, setOpenTopic] = useState<{ topic: SyllabusTopic; paper: SyllabusPaper } | null>(null);
 
+  const greeting = (() => { const h = new Date().getHours(); return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : h < 21 ? "Good evening" : "Good night"; })();
+  const [typed, setTyped] = useState("");
+  const [typedDone, setTypedDone] = useState(false);
+  useEffect(() => {
+    setTyped(""); setTypedDone(false);
+    let i = 0;
+    const id = setInterval(() => {
+      i++;
+      setTyped(greeting.slice(0, i));
+      if (i >= greeting.length) { clearInterval(id); setTypedDone(true); }
+    }, 110);
+    return () => clearInterval(id);
+  }, [greeting]);
+  const isNight = greeting === "Good night";
+
   return (
     <div className="relative">
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 gradient-mesh-subtle" />
@@ -97,11 +112,15 @@ function Dashboard() {
                 </span>
                 {new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
               </div>
-              <h1 className="mt-3 font-serif text-4xl sm:text-5xl lg:text-6xl leading-[1.02]">
-                <span className="animate-blink-soft">
-                  {(() => { const h = new Date().getHours(); return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : h < 21 ? "Good evening" : "Good night"; })()}
+              <h1 className="mt-3 font-serif text-4xl sm:text-5xl lg:text-6xl leading-[1.02] flex flex-wrap items-center gap-x-3">
+                <span>
+                  {typed}
+                  {!typedDone && <span className="inline-block w-[3px] h-[0.9em] align-middle bg-gold ml-1 animate-blink-soft" />}
                 </span>
-                , <span className="italic animate-hue-cycle">Aspirant</span>.
+                {typedDone && isNight && (
+                  <Moon className="h-8 w-8 sm:h-10 sm:w-10 text-gold animate-moon-glow" fill="currentColor" strokeWidth={1.2} />
+                )}
+                <span>, <span className="italic animate-hue-cycle">Aspirant</span>.</span>
               </h1>
               <p className="mt-3 max-w-lg text-primary-foreground/75 text-sm sm:text-base">
                 {totalToday === 0
