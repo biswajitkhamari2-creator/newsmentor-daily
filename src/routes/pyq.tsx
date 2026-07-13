@@ -260,3 +260,141 @@ function LivePractice() {
     </div>
   );
 }
+
+type GeneratedQ = {
+  question: string;
+  marks: number;
+  wordLimit: number;
+  paper: string;
+  hint: string;
+  keyPoints: string[];
+};
+
+function MainsGenerator() {
+  const generate = useServerFn(generateMainsQuestions);
+  const [topic, setTopic] = useState("");
+  const [count, setCount] = useState("4");
+  const [questions, setQuestions] = useState<GeneratedQ[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const onGenerate = async () => {
+    if (!topic.trim()) return;
+    setLoading(true); setError(null); setQuestions(null);
+    try {
+      const out = await generate({ data: { topic: topic.trim(), count: Number(count) } });
+      setQuestions(out.questions as GeneratedQ[]);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Failed to generate";
+      if (msg.includes("429")) setError("Rate limit hit. Please retry in a moment.");
+      else if (msg.includes("402")) setError("AI credits exhausted. Add credits in your workspace to continue.");
+      else setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const suggestions = ["Cooperative federalism", "Climate change & India", "Ethics in public service", "Green Hydrogen Mission", "India-EU FTA"];
+
+  return (
+    <div className="space-y-4">
+      <Card className="shadow-sm">
+        <CardContent className="p-5 space-y-3">
+          <div className="flex items-center gap-2 text-sm">
+            <Sparkles className="h-4 w-4 text-gold" />
+            <span className="font-semibold">Generate UPSC Mains questions on any topic</span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Input
+              placeholder="Enter a topic (e.g. Fiscal federalism, Article 370, Monsoon dynamics)"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter" && !loading) onGenerate(); }}
+              className="flex-1 min-w-[240px]"
+            />
+            <Select value={count} onValueChange={setCount}>
+              <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {["2","3","4","5","6"].map((n) => <SelectItem key={n} value={n}>{n} questions</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Button onClick={onGenerate} disabled={loading || !topic.trim()} className="bg-gold text-gold-foreground hover:bg-gold/90">
+              {loading ? <><Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> Generating…</> : <><Sparkles className="h-3.5 w-3.5 mr-1" /> Generate</>}
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-1.5 text-xs">
+            <span className="text-muted-foreground">Try:</span>
+            {suggestions.map((s) => (
+              <button key={s} type="button" onClick={() => setTopic(s)} className="rounded-full border px-2 py-0.5 hover:border-gold/60 hover:text-gold transition">
+                {s}
+              </button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {error && (
+        <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm text-destructive flex items-center gap-2">
+          <AlertCircle className="h-4 w-4" /> {error}
+        </div>
+      )}
+
+      {loading && (
+        <div className="space-y-3">
+          {Array.from({ length: Number(count) }).map((_, i) => (
+            <Card key={i} className="shadow-sm animate-pulse">
+              <CardContent className="p-5 space-y-2">
+                <div className="h-3 w-32 bg-muted rounded" />
+                <div className="h-5 w-4/5 bg-muted rounded" />
+                <div className="h-3 w-2/3 bg-muted rounded" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {questions && questions.length > 0 && (
+        <div className="space-y-3">
+          {questions.map((q, i) => (
+            <Collapsible key={i}>
+              <Card className="shadow-sm">
+                <CardContent className="p-5">
+                  <div className="flex flex-wrap gap-2 items-center">
+                    <Badge className="bg-primary text-primary-foreground">{q.paper}</Badge>
+                    <Badge variant="outline">{q.marks} marks</Badge>
+                    <Badge variant="outline" className="border-gold/50 text-gold">{q.wordLimit} words</Badge>
+                    <Badge variant="outline"><Sparkles className="h-3 w-3 mr-1" />AI</Badge>
+                  </div>
+                  <p className="mt-3 font-serif text-lg leading-snug">{q.question}</p>
+                  <CollapsibleTrigger className="group mt-3 text-sm text-primary hover:text-gold inline-flex items-center gap-1">
+                    Reveal hint & key points
+                    <ChevronDown className="h-4 w-4 transition group-data-[state=open]:rotate-180" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-3 space-y-3">
+                    <div className="rounded-md border border-gold/40 bg-gold/5 p-3 text-sm">
+                      <span className="font-semibold text-gold">Hint · </span>{q.hint}
+                    </div>
+                    <div className="rounded-md bg-muted/40 p-3 text-sm">
+                      <div className="font-semibold mb-1">Key points to cover</div>
+                      <ul className="list-disc pl-5 space-y-1">
+                        {q.keyPoints.map((kp, j) => <li key={j}>{kp}</li>)}
+                      </ul>
+                    </div>
+                  </CollapsibleContent>
+                </CardContent>
+              </Card>
+            </Collapsible>
+          ))}
+        </div>
+      )}
+
+      {!loading && !questions && !error && (
+        <Card className="shadow-sm border-dashed">
+          <CardContent className="p-6 text-sm text-muted-foreground text-center">
+            Enter any UPSC topic above and press Generate — the AI will craft exam-style Mains questions with hints and key points.
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
