@@ -10,8 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { CalendarCheck2, Target, Flame, Plus, BookOpen, Trash2, Minus, Pencil } from "lucide-react";
-import { type Task, type SyllabusPaper, type SyllabusTopic } from "@/data/mock";
-import { syllabusDetail, paperOverview } from "@/data/syllabusDetail";
+import { type Task } from "@/data/mock";
+import { syllabusDetail } from "@/data/syllabusDetail";
 import { usePlannerStore } from "@/hooks/usePlannerStore";
 
 export const Route = createFileRoute("/planner")({
