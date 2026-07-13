@@ -14,6 +14,7 @@ export type PlannerState = {
   weeklyGoalHrs: number;
   lastActiveDate: string | null;
   streak: number;
+  progressSeedCleared?: boolean;
 };
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
@@ -30,6 +31,7 @@ const initial = (): PlannerState => ({
   weeklyGoalHrs: 40,
   lastActiveDate: null,
   streak: 0,
+  progressSeedCleared: true,
 });
 
 function load(): PlannerState {
@@ -44,7 +46,13 @@ function load(): PlannerState {
       // carry uncompleted tasks forward? keep simple: seed for new day empty
       parsed.days[t] = { date: t, tasks: [] };
     }
-    return { ...initial(), ...parsed, progress: { ...seedProgress(), ...parsed.progress } };
+    const baseline = seedProgress();
+    return {
+      ...initial(),
+      ...parsed,
+      progress: parsed.progressSeedCleared ? { ...baseline, ...parsed.progress } : baseline,
+      progressSeedCleared: true,
+    };
   } catch {
     return initial();
   }
