@@ -172,18 +172,24 @@ function Planner() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {remaining === 0 && (
+            {totalPending === 0 && (
               <div className="rounded-lg border border-dashed p-6 text-center">
                 <div className="font-serif text-xl">All caught up on {todaySubject.name}.</div>
                 <p className="text-sm text-muted-foreground mt-1">Every point is in your archive. Pick another subject tomorrow.</p>
               </div>
             )}
-            {topicBlocks.map((block) => (
+            {totalPending > 0 && remaining === 0 && (
+              <div className="rounded-lg border border-dashed p-6 text-center">
+                <div className="font-serif text-xl">Today's portion is done.</div>
+                <p className="text-sm text-muted-foreground mt-1">{totalPending} more waiting for tomorrow. Rest well.</p>
+              </div>
+            )}
+            {todayTopicBlocks.map((block) => (
               <div key={block.tid} className="rounded-lg border p-4 bg-card">
                 <div className="flex items-center gap-2 mb-3">
                   <BookOpen className="h-4 w-4 text-gold" />
                   <span className="font-medium">{block.topicName}</span>
-                  <Badge variant="outline" className="text-[10px] ml-auto">{block.items.length} to study</Badge>
+                  <Badge variant="outline" className="text-[10px] ml-auto">{block.items.length} today</Badge>
                 </div>
                 <ul className="space-y-2">
                   {block.items.map((it) => (
@@ -195,11 +201,11 @@ function Planner() {
                 </ul>
               </div>
             ))}
-            {extraItems.length > 0 && (
+            {todayExtra.length > 0 && (
               <div className="rounded-lg border p-4 bg-card">
                 <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">Official syllabus</div>
                 <ul className="space-y-2">
-                  {extraItems.map((it) => (
+                  {todayExtra.map((it) => (
                     <li key={it.id} className="flex items-start gap-3">
                       <Checkbox className="mt-0.5" onCheckedChange={(v) => v && markPointDone(it)} aria-label="Mark as studied" />
                       <span className="text-sm leading-relaxed">{it.point}</span>
