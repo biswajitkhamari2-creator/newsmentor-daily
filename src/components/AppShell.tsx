@@ -27,6 +27,7 @@ import {
   Search,
   Building2,
   RotateCcw,
+  BookOpen,
 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { Input } from "@/components/ui/input";
