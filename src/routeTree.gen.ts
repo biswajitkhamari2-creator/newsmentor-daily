@@ -9,25 +9,37 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as UploadRouteImport } from './routes/upload'
 import { Route as PyqRouteImport } from './routes/pyq'
-import { Route as HeadlinesRouteImport } from './routes/headlines'
+import { Route as PlannerRouteImport } from './routes/planner'
+import { Route as MentorRouteImport } from './routes/mentor'
+import { Route as CurrentAffairsRouteImport } from './routes/current-affairs'
+import { Route as AnswersRouteImport } from './routes/answers'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
-const UploadRoute = UploadRouteImport.update({
-  id: '/upload',
-  path: '/upload',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const PyqRoute = PyqRouteImport.update({
   id: '/pyq',
   path: '/pyq',
   getParentRoute: () => rootRouteImport,
 } as any)
-const HeadlinesRoute = HeadlinesRouteImport.update({
-  id: '/headlines',
-  path: '/headlines',
+const PlannerRoute = PlannerRouteImport.update({
+  id: '/planner',
+  path: '/planner',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MentorRoute = MentorRouteImport.update({
+  id: '/mentor',
+  path: '/mentor',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CurrentAffairsRoute = CurrentAffairsRouteImport.update({
+  id: '/current-affairs',
+  path: '/current-affairs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnswersRoute = AnswersRouteImport.update({
+  id: '/answers',
+  path: '/answers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -44,50 +56,73 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/headlines': typeof HeadlinesRoute
+  '/answers': typeof AnswersRoute
+  '/current-affairs': typeof CurrentAffairsRoute
+  '/mentor': typeof MentorRoute
+  '/planner': typeof PlannerRoute
   '/pyq': typeof PyqRoute
-  '/upload': typeof UploadRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/headlines': typeof HeadlinesRoute
+  '/answers': typeof AnswersRoute
+  '/current-affairs': typeof CurrentAffairsRoute
+  '/mentor': typeof MentorRoute
+  '/planner': typeof PlannerRoute
   '/pyq': typeof PyqRoute
-  '/upload': typeof UploadRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/headlines': typeof HeadlinesRoute
+  '/answers': typeof AnswersRoute
+  '/current-affairs': typeof CurrentAffairsRoute
+  '/mentor': typeof MentorRoute
+  '/planner': typeof PlannerRoute
   '/pyq': typeof PyqRoute
-  '/upload': typeof UploadRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/headlines' | '/pyq' | '/upload'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/answers'
+    | '/current-affairs'
+    | '/mentor'
+    | '/planner'
+    | '/pyq'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/headlines' | '/pyq' | '/upload'
-  id: '__root__' | '/' | '/about' | '/headlines' | '/pyq' | '/upload'
+  to:
+    | '/'
+    | '/about'
+    | '/answers'
+    | '/current-affairs'
+    | '/mentor'
+    | '/planner'
+    | '/pyq'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/answers'
+    | '/current-affairs'
+    | '/mentor'
+    | '/planner'
+    | '/pyq'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  HeadlinesRoute: typeof HeadlinesRoute
+  AnswersRoute: typeof AnswersRoute
+  CurrentAffairsRoute: typeof CurrentAffairsRoute
+  MentorRoute: typeof MentorRoute
+  PlannerRoute: typeof PlannerRoute
   PyqRoute: typeof PyqRoute
-  UploadRoute: typeof UploadRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/upload': {
-      id: '/upload'
-      path: '/upload'
-      fullPath: '/upload'
-      preLoaderRoute: typeof UploadRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/pyq': {
       id: '/pyq'
       path: '/pyq'
@@ -95,11 +130,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PyqRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/headlines': {
-      id: '/headlines'
-      path: '/headlines'
-      fullPath: '/headlines'
-      preLoaderRoute: typeof HeadlinesRouteImport
+    '/planner': {
+      id: '/planner'
+      path: '/planner'
+      fullPath: '/planner'
+      preLoaderRoute: typeof PlannerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mentor': {
+      id: '/mentor'
+      path: '/mentor'
+      fullPath: '/mentor'
+      preLoaderRoute: typeof MentorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/current-affairs': {
+      id: '/current-affairs'
+      path: '/current-affairs'
+      fullPath: '/current-affairs'
+      preLoaderRoute: typeof CurrentAffairsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/answers': {
+      id: '/answers'
+      path: '/answers'
+      fullPath: '/answers'
+      preLoaderRoute: typeof AnswersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -122,9 +178,11 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  HeadlinesRoute: HeadlinesRoute,
+  AnswersRoute: AnswersRoute,
+  CurrentAffairsRoute: CurrentAffairsRoute,
+  MentorRoute: MentorRoute,
+  PlannerRoute: PlannerRoute,
   PyqRoute: PyqRoute,
-  UploadRoute: UploadRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
