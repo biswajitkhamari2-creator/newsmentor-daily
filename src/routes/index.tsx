@@ -38,13 +38,13 @@ function Dashboard() {
 
   return (
     <div className="relative overflow-hidden">
-      {/* Multi-colour mesh background */}
+      {/* Multi-colour mesh background — harmonized with emerald/gold/terracotta */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute -top-32 -left-24 h-[420px] w-[420px] rounded-full blur-3xl opacity-60 animate-float-slow" style={{ background: "radial-gradient(circle, #f9a8a8 0%, transparent 70%)" }} />
-        <div className="absolute top-20 right-0 h-[460px] w-[460px] rounded-full blur-3xl opacity-55 animate-float-slower" style={{ background: "radial-gradient(circle, #7dd3fc 0%, transparent 70%)" }} />
-        <div className="absolute top-[40%] left-[35%] h-[500px] w-[500px] rounded-full blur-3xl opacity-50 animate-float-slow" style={{ background: "radial-gradient(circle, #c9a0dc 0%, transparent 70%)" }} />
-        <div className="absolute bottom-0 right-[10%] h-[380px] w-[380px] rounded-full blur-3xl opacity-55 animate-float-slower" style={{ background: "radial-gradient(circle, #fde68a 0%, transparent 70%)" }} />
-        <div className="absolute bottom-10 left-[5%] h-[360px] w-[360px] rounded-full blur-3xl opacity-50 animate-float-slow" style={{ background: "radial-gradient(circle, #86efac 0%, transparent 70%)" }} />
+        <div className="absolute -top-32 -left-24 h-[460px] w-[460px] rounded-full blur-3xl opacity-40 animate-float-slow" style={{ background: "radial-gradient(circle, #c9a84c 0%, transparent 70%)" }} />
+        <div className="absolute top-10 right-0 h-[500px] w-[500px] rounded-full blur-3xl opacity-35 animate-float-slower" style={{ background: "radial-gradient(circle, #064e3b 0%, transparent 70%)" }} />
+        <div className="absolute top-[45%] left-[30%] h-[520px] w-[520px] rounded-full blur-3xl opacity-30 animate-float-slow" style={{ background: "radial-gradient(circle, #c14b2e 0%, transparent 70%)" }} />
+        <div className="absolute bottom-0 right-[8%] h-[420px] w-[420px] rounded-full blur-3xl opacity-35 animate-float-slower" style={{ background: "radial-gradient(circle, #a67b3a 0%, transparent 70%)" }} />
+        <div className="absolute bottom-10 left-[5%] h-[400px] w-[400px] rounded-full blur-3xl opacity-30 animate-float-slow" style={{ background: "radial-gradient(circle, #3a5a40 0%, transparent 70%)" }} />
       </div>
       <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6 max-w-[1400px] mx-auto">
 
