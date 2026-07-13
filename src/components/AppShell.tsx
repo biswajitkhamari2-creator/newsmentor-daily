@@ -30,6 +30,7 @@ import {
 import { ThemeToggle } from "./ThemeToggle";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { usePlannerStore } from "@/hooks/usePlannerStore";
 
 const nav = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
