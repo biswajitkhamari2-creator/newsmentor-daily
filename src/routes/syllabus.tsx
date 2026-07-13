@@ -149,24 +149,37 @@ Study tip: <1 line on how to approach it, or say "Not required" if outside sylla
         </p>
       </header>
 
-      {/* Syllabus snapshot */}
+      {/* Syllabus snapshot — live */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center justify-between gap-2 text-base">
             <span className="flex items-center gap-2">
               <Gauge className="h-4 w-4 text-gold" /> Syllabus snapshot
+              <span className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.22em] text-success font-normal ml-1">
+                <span className="relative inline-flex h-1.5 w-1.5">
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-success opacity-75 animate-ping" />
+                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-success" />
+                </span>
+                Live
+              </span>
             </span>
             <span className="text-xs font-normal text-muted-foreground tabular-nums">
               Overall <AnimatedCounter value={overall} suffix="%" />
             </span>
           </CardTitle>
+          <div className="text-[11px] text-muted-foreground pt-1 flex flex-wrap gap-x-3 gap-y-1">
+            <span>Synced from planner · {doneToday} task{doneToday === 1 ? "" : "s"} done today</span>
+            <span>·</span>
+            <span>{attempted} mock{attempted === 1 ? "" : "s"} attempted</span>
+            <span>·</span>
+            <span>Updated {lastSync.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}</span>
+          </div>
         </CardHeader>
         <CardContent className="space-y-3">
           {syllabus.map((paper, i) => {
-            const avg = Math.round(
-              paper.topics.reduce((s, t) => s + t.progress, 0) / paper.topics.length,
-            );
+            const avg = livePaperPct(paper.topics);
             const isOpen = expandedPaper === paper.id;
+
             return (
               <div key={paper.id} className="rounded-lg border bg-card/50">
                 <button
