@@ -33,12 +33,6 @@ const prompt = {
   ],
 };
 
-const submissions = [
-  { id: 1, title: "Discuss the role of NITI Aayog in cooperative federalism", score: 11, max: 15, when: "Yesterday" },
-  { id: 2, title: "Examine the ethical issues in emergency situations", score: 13, max: 15, when: "2 days ago" },
-  { id: 3, title: "Green Hydrogen as India's clean energy vector", score: 12, max: 15, when: "3 days ago" },
-  { id: 4, title: "Bhakti movement and composite culture", score: 10, max: 15, when: "5 days ago" },
-];
 
 function AnswerWriting() {
   const [text, setText] = useState("");
