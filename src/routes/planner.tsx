@@ -19,6 +19,10 @@ import {
   ChevronLeft, ChevronRight, Filter,
 } from "lucide-react";
 import { useScheduleStore, type Category, type Priority, type ScheduleTask } from "@/hooks/useScheduleStore";
+import { useSyllabusTracker, getChaptersForSubject } from "@/hooks/useSyllabusTracker";
+import { subjects as ALL_SUBJECTS } from "@/data/subjectMap";
+import { Archive, GraduationCap, Undo2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export const Route = createFileRoute("/planner")({
   head: () => ({
