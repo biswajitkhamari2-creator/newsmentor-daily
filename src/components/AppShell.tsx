@@ -48,6 +48,8 @@ function AppSidebar() {
   const collapsed = state === "collapsed";
   const path = useRouterState({ select: (r) => r.location.pathname });
   const isActive = (url: string) => (url === "/" ? path === "/" : path.startsWith(url));
+  const { streak, tasks } = usePlannerStore();
+  const dueLabel = tasks.find((t) => !t.done)?.title ?? "Add your first task";
 
   return (
     <Sidebar collapsible="icon" className="border-r-0">
