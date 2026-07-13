@@ -211,6 +211,7 @@ function Dashboard() {
           </CardContent>
         </Card>
       </section>
+      </div>
     </div>
   );
 }
