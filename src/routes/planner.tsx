@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { CalendarCheck2, Target, Flame, Plus, BookOpen, Trash2, Minus, Pencil, GraduationCap } from "lucide-react";
+import { CalendarCheck2, Target, Flame, Plus, BookOpen, Trash2, Minus, Pencil, GraduationCap, X } from "lucide-react";
 import { type Task } from "@/data/mock";
 import { syllabusDetail } from "@/data/syllabusDetail";
 import { subjects, type SubjectEntry } from "@/data/subjectMap";
@@ -32,8 +32,32 @@ function Planner() {
   } = usePlannerStore();
   const [addOpen, setAddOpen] = useState(false);
   const [activeSubject, setActiveSubject] = useState<SubjectEntry | null>(null);
+  const [todayKey, setTodayKey] = useState<string | null>(null);
+
+  // Persist "today's subject" — resets when the date changes.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("planner:todaySubject");
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as { key: string; date: string };
+      const today = new Date().toDateString();
+      if (parsed.date === today) setTodayKey(parsed.key);
+      else localStorage.removeItem("planner:todaySubject");
+    } catch { /* ignore */ }
+  }, []);
+
+  const pickTodaySubject = (key: string | null) => {
+    setTodayKey(key);
+    try {
+      if (key) localStorage.setItem("planner:todaySubject", JSON.stringify({ key, date: new Date().toDateString() }));
+      else localStorage.removeItem("planner:todaySubject");
+    } catch { /* ignore */ }
+  };
+
+  const todaySubject = todayKey ? subjects.find((s) => s.key === todayKey) ?? null : null;
 
   const done = tasks.filter((t) => t.done).length;
+
   const overall = useMemo(() => {
     const all = syllabus.flatMap((p) => p.topics);
     if (!all.length) return 0;
@@ -64,6 +88,73 @@ function Planner() {
         </div>
       </header>
 
+      {todaySubject ? (
+        <Card className="shadow-sm border-gold/40 bg-gradient-to-br from-gold/5 to-transparent">
+          <CardHeader className="pb-3">
+            <div className="flex items-start justify-between flex-wrap gap-2">
+              <div>
+                <div className="text-xs uppercase tracking-[0.3em] text-gold">Today's subject</div>
+                <CardTitle className="font-serif text-3xl mt-1">{todaySubject.name}</CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">{todaySubject.paper} · focus only on this today.</p>
+              </div>
+              <Button size="sm" variant="ghost" onClick={() => pickTodaySubject(null)}>
+                <X className="h-4 w-4 mr-1" /> Change subject
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {todaySubject.topicIds?.map((tid) => {
+              const detail = syllabusDetail[tid];
+              const topicMeta = syllabus.flatMap((p) => p.topics).find((t) => t.id === tid);
+              if (!topicMeta) return null;
+              return (
+                <div key={tid} className="rounded-lg border p-4 bg-card">
+                  <div className="flex justify-between text-sm mb-2 items-center flex-wrap gap-2">
+                    <span className="font-medium flex items-center gap-1.5">
+                      <BookOpen className="h-4 w-4 text-gold" />
+                      {topicMeta.name}
+                    </span>
+                    <span className="text-muted-foreground text-xs">{topicMeta.progress}%</span>
+                  </div>
+                  <Progress value={topicMeta.progress} className="h-1.5" />
+                  <div className="flex items-center gap-1 mt-3">
+                    <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setProgress(tid, topicMeta.progress - 5)} aria-label="Decrease">
+                      <Minus className="h-3 w-3" />
+                    </Button>
+                    <Slider value={[topicMeta.progress]} onValueChange={(v) => setProgress(tid, v[0])} max={100} step={5} className="flex-1" />
+                    <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setProgress(tid, topicMeta.progress + 5)} aria-label="Increase">
+                      <Plus className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  {detail && (
+                    <ul className="space-y-1.5 mt-4 border-t pt-3">
+                      {detail.points.map((p, i) => (
+                        <li key={i} className="flex gap-2 text-xs leading-relaxed text-muted-foreground">
+                          <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-gold shrink-0" />
+                          <span>{p}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              );
+            })}
+            {todaySubject.extraPoints && (
+              <div className="rounded-lg border p-4 bg-card">
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">Official syllabus</div>
+                <ul className="space-y-1.5">
+                  {todaySubject.extraPoints.map((p, i) => (
+                    <li key={i} className="flex gap-2 text-xs leading-relaxed text-muted-foreground">
+                      <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-gold shrink-0" />
+                      <span>{p}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
       <Card className="shadow-sm">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between flex-wrap gap-2">
@@ -106,6 +197,9 @@ function Planner() {
           })}
         </CardContent>
       </Card>
+      )}
+
+
 
       <Dialog open={!!activeSubject} onOpenChange={(o) => !o && setActiveSubject(null)}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
@@ -156,8 +250,9 @@ function Planner() {
                   </div>
                 )}
               </div>
-              <DialogFooter className="mt-4">
+              <DialogFooter className="mt-4 gap-2 sm:gap-0">
                 <Button
+                  variant="outline"
                   onClick={() => {
                     addTask({
                       title: `${activeSubject.name} — study block`,
@@ -169,6 +264,14 @@ function Planner() {
                 >
                   <Plus className="h-4 w-4 mr-1" /> Add to today's plan
                 </Button>
+                <Button
+                  onClick={() => {
+                    pickTodaySubject(activeSubject.key);
+                    setActiveSubject(null);
+                  }}
+                >
+                  Make this today's subject
+                </Button>
               </DialogFooter>
             </>
           )}
@@ -177,7 +280,7 @@ function Planner() {
 
       <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
         <div className="space-y-4">
-          {syllabus.map((paper) => {
+          {!todaySubject && syllabus.map((paper) => {
             const avg = Math.round(paper.topics.reduce((s, t) => s + t.progress, 0) / paper.topics.length);
             return (
               <Card key={paper.id} className="shadow-sm">
