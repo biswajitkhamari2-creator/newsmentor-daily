@@ -19,6 +19,10 @@ import {
   ChevronLeft, ChevronRight, Filter,
 } from "lucide-react";
 import { useScheduleStore, type Category, type Priority, type ScheduleTask } from "@/hooks/useScheduleStore";
+import { useSyllabusTracker, getChaptersForSubject } from "@/hooks/useSyllabusTracker";
+import { subjects as ALL_SUBJECTS } from "@/data/subjectMap";
+import { Archive, GraduationCap, Undo2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export const Route = createFileRoute("/planner")({
   head: () => ({
@@ -166,8 +170,12 @@ function SchedulePage() {
         ))}
       </div>
 
+      {/* Syllabus Tracker */}
+      <SyllabusTracker />
+
       {/* Timeline */}
       <section className="space-y-3">
+
         <div className="flex items-baseline justify-between">
           <h2 className="font-serif text-2xl">Daily Timeline</h2>
           <div className="text-xs text-muted-foreground">{filtered.length} task{filtered.length === 1 ? "" : "s"}</div>
@@ -532,3 +540,170 @@ function QuickAdd({ open, onOpenChange, defaultDate, onAdd }: {
     </Dialog>
   );
 }
+
+// ---------------- Syllabus Tracker ----------------
+
+function SyllabusTracker() {
+  const { ready, checked, toggle, unarchive, clearArchive } = useSyllabusTracker();
+  const [subjectKey, setSubjectKey] = useState<string>(ALL_SUBJECTS[0].key);
+  const [showArchive, setShowArchive] = useState(false);
+
+  const chapters = useMemo(() => getChaptersForSubject(subjectKey), [subjectKey]);
+  const pending = chapters.filter((c) => !checked[c.id]);
+  const doneInSubject = chapters.filter((c) => checked[c.id]);
+  const pct = chapters.length ? Math.round((doneInSubject.length / chapters.length) * 100) : 0;
+
+  // Archive across all subjects
+  const archiveItems = useMemo(() => {
+    const all = ALL_SUBJECTS.flatMap((s) => getChaptersForSubject(s.key));
+    return all
+      .filter((c) => checked[c.id])
+      .map((c) => ({ ...c, at: checked[c.id].at }))
+      .sort((a, b) => b.at - a.at);
+  }, [checked]);
+
+  if (!ready) return null;
+
+  return (
+    <section className="space-y-3 animate-fade-in">
+      <div className="flex items-baseline justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-2">
+          <GraduationCap className="h-5 w-5 text-gold" />
+          <h2 className="font-serif text-2xl">Syllabus Tracker</h2>
+        </div>
+        <button
+          onClick={() => setShowArchive((v) => !v)}
+          className="text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground flex items-center gap-1.5"
+        >
+          <Archive className="h-3.5 w-3.5" />
+          {showArchive ? "Hide archive" : `Archive · ${archiveItems.length}`}
+        </button>
+      </div>
+
+      {/* Subject chips */}
+      <Card className="p-4">
+        <div className="flex flex-wrap gap-2">
+          {ALL_SUBJECTS.map((s) => {
+            const total = getChaptersForSubject(s.key).length;
+            const done = getChaptersForSubject(s.key).filter((c) => checked[c.id]).length;
+            const active = s.key === subjectKey;
+            return (
+              <button
+                key={s.key}
+                onClick={() => setSubjectKey(s.key)}
+                className={[
+                  "px-3 py-1.5 rounded-full text-xs border transition flex items-center gap-2",
+                  active
+                    ? "gradient-navy text-primary-foreground border-transparent shadow-elegant"
+                    : "bg-card hover:border-gold/50 hover:bg-gold/5",
+                ].join(" ")}
+              >
+                <span className="font-medium">{s.name}</span>
+                <span className={active ? "opacity-80" : "text-muted-foreground"}>
+                  {done}/{total}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Progress bar */}
+        <div className="mt-4 flex items-center gap-3">
+          <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+            <div
+              className="h-full gradient-gold"
+              style={{ width: `${pct}%`, transition: "width 700ms cubic-bezier(0.16,1,0.3,1)" }}
+            />
+          </div>
+          <div className="text-xs text-muted-foreground tabular-nums">{pct}%</div>
+        </div>
+
+        {/* Pending chapters */}
+        <div className="mt-4 space-y-2">
+          <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
+            To study · {pending.length}
+          </div>
+          {pending.length === 0 ? (
+            <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+              🎉 All chapters of <span className="font-medium">{ALL_SUBJECTS.find((s) => s.key === subjectKey)?.name}</span> completed. Check the archive below.
+            </div>
+          ) : (
+            pending.map((c) => (
+              <label
+                key={c.id}
+                className="flex items-start gap-3 rounded-lg p-3 hover:bg-muted/50 cursor-pointer transition border border-transparent hover:border-border"
+              >
+                <Checkbox
+                  checked={false}
+                  onCheckedChange={() => toggle(c.id)}
+                  className="mt-0.5"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm leading-relaxed">{c.text}</div>
+                  <div className="text-[10px] uppercase tracking-widest text-muted-foreground mt-1">
+                    {c.paper}
+                  </div>
+                </div>
+              </label>
+            ))
+          )}
+        </div>
+      </Card>
+
+      {/* Archive */}
+      {showArchive && (
+        <Card className="p-4 animate-fade-in">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Archive className="h-4 w-4 text-muted-foreground" />
+              <div className="text-sm font-medium">Completed archive</div>
+              <Badge variant="secondary" className="text-[10px]">{archiveItems.length}</Badge>
+            </div>
+            {archiveItems.length > 0 && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 text-xs text-muted-foreground hover:text-destructive"
+                onClick={() => { if (confirm("Clear entire archive? This cannot be undone.")) clearArchive(); }}
+              >
+                Clear all
+              </Button>
+            )}
+          </div>
+          {archiveItems.length === 0 ? (
+            <div className="text-sm text-muted-foreground text-center py-6">
+              Nothing archived yet. Tick chapters above as you finish them.
+            </div>
+          ) : (
+            <div className="space-y-1.5 max-h-[420px] overflow-y-auto pr-1">
+              {archiveItems.map((c) => (
+                <div
+                  key={c.id}
+                  className="group flex items-start gap-3 rounded-lg p-2.5 hover:bg-muted/40 transition"
+                >
+                  <CheckCircle2 className="h-4 w-4 text-success mt-0.5 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm line-through text-muted-foreground leading-relaxed">
+                      {c.text}
+                    </div>
+                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground/70 mt-0.5">
+                      {c.subjectName} · {c.paper}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => unarchive(c.id)}
+                    className="opacity-0 group-hover:opacity-100 text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 shrink-0 transition"
+                    title="Move back to pending"
+                  >
+                    <Undo2 className="h-3.5 w-3.5" /> Undo
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      )}
+    </section>
+  );
+}
+
