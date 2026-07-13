@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -8,6 +9,7 @@ import {
 } from "lucide-react";
 import { headlines, todaysPlan, syllabus } from "@/data/mock";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
+import { fetchLatestNews } from "@/lib/news.functions";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -56,6 +58,16 @@ function Dashboard() {
   const doneHours = 4.2;
   const targetPct = Math.round((doneHours / targetHours) * 100);
   const maxWeek = Math.max(...weeklyHours);
+
+  const { data: liveNews } = useQuery({
+    queryKey: ["latest-news"],
+    queryFn: () => fetchLatestNews(),
+    staleTime: 5 * 60_000,
+    refetchInterval: 5 * 60_000,
+  });
+  const tickerItems = (liveNews && liveNews.length > 0)
+    ? liveNews.map((n) => n.title)
+    : ticker;
 
   return (
     <div className="relative">
@@ -133,7 +145,7 @@ function Dashboard() {
             </div>
             <div className="relative flex-1 overflow-hidden py-2.5">
               <div className="flex gap-10 whitespace-nowrap animate-marquee w-max">
-                {[...ticker, ...ticker].map((t, i) => (
+                {[...tickerItems, ...tickerItems].map((t, i) => (
                   <span key={i} className="text-sm text-foreground/80 inline-flex items-center gap-2">
                     <span className="h-1 w-1 rounded-full bg-gold" /> {t}
                   </span>
