@@ -224,11 +224,12 @@ Study tip: <1 line on how to approach it, or say "Not required" if outside sylla
                           <ChevronRight className="h-3.5 w-3.5 text-muted-foreground group-hover:text-gold transition shrink-0" />
                         </div>
                         <div className="mt-1.5 h-1 rounded-full bg-muted overflow-hidden">
-                          <div className="h-full gradient-emerald" style={{ width: `${t.progress}%` }} />
+                          <div className="h-full gradient-emerald" style={{ width: `${liveTopicPct(t)}%` }} />
                         </div>
                         <div className="mt-1 text-[10px] text-muted-foreground tabular-nums">
-                          {t.progress}%
+                          {liveTopicPct(t)}%
                         </div>
+
                       </button>
                     ))}
                   </div>
