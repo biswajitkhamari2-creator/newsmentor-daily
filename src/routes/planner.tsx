@@ -197,6 +197,9 @@ function Planner() {
           })}
         </CardContent>
       </Card>
+      )}
+
+
 
       <Dialog open={!!activeSubject} onOpenChange={(o) => !o && setActiveSubject(null)}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
