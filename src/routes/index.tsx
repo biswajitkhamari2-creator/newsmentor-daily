@@ -13,6 +13,7 @@ import { headlines, todaysPlan, syllabus, type SyllabusPaper, type SyllabusTopic
 import { syllabusDetail, paperOverview } from "@/data/syllabusDetail";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
 import { fetchLatestNews } from "@/lib/news.functions";
+import { usePlannerStore } from "@/hooks/usePlannerStore";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -54,12 +55,14 @@ const recentActivity = [
 ];
 
 function Dashboard() {
-  const done = todaysPlan.filter((t) => t.done).length;
+  const { streak, tasks: plannerTasks, weeklyGoalHrs } = usePlannerStore();
+  const done = plannerTasks.filter((t) => t.done).length;
+  const totalToday = plannerTasks.length;
   const topics = syllabus.flatMap((p) => p.topics);
   const overall = Math.round(topics.reduce((s, t) => s + t.progress, 0) / topics.length);
-  const targetHours = 6;
-  const doneHours = 4.2;
-  const targetPct = Math.round((doneHours / targetHours) * 100);
+  const targetHours = Math.max(1, Math.round((weeklyGoalHrs / 7) * 10) / 10);
+  const doneHours = Math.round(done * 0.5 * 10) / 10;
+  const targetPct = Math.min(100, Math.round((doneHours / targetHours) * 100));
   const maxWeek = Math.max(...weeklyHours);
 
   const { data: liveNews } = useQuery({
@@ -98,7 +101,9 @@ function Dashboard() {
                 Good morning, <span className="italic text-gold">Aspirant</span>.
               </h1>
               <p className="mt-3 max-w-lg text-primary-foreground/75 text-sm sm:text-base">
-                {done} of {todaysPlan.length} tasks done · 3 editorials queued · GS-II answer due.
+                {totalToday === 0
+                  ? "No tasks yet — add today's plan to start your streak."
+                  : `${done} of ${totalToday} tasks done today.`}
               </p>
               <div className="mt-6 flex flex-wrap gap-2">
                 <Button asChild size="lg" className="bg-gold text-gold-foreground hover:bg-gold/90 shadow-[0_10px_30px_-12px_rgba(201,168,76,0.6)]">
@@ -128,7 +133,9 @@ function Dashboard() {
               </div>
               <div className="mt-2 flex justify-between text-xs">
                 <span className="text-muted-foreground">{targetPct}% of goal</span>
-                <span className="text-success font-medium">On track</span>
+                <span className={`font-medium ${targetPct >= 100 ? "text-success" : targetPct > 0 ? "text-gold" : "text-muted-foreground"}`}>
+                  {targetPct >= 100 ? "Goal hit" : targetPct > 0 ? "In progress" : "Not started"}
+                </span>
               </div>
             </div>
           </div>
@@ -136,7 +143,7 @@ function Dashboard() {
 
         {/* Quick stats bento row */}
         <section className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-          <StatBento icon={Flame} label="Streak" value={<><AnimatedCounter value={12} /> d</>} sub="Best: 18" tone="gold" flame delay={0} />
+          <StatBento icon={Flame} label="Streak" value={<><AnimatedCounter value={streak} /> d</>} sub={streak === 0 ? "Start today" : `Keep going`} tone="gold" flame delay={0} />
           <StatBento icon={TrendingUp} label="Mock avg" value={<><AnimatedCounter value={118} />/200</>} sub="+6 vs last wk" tone="success" delay={80} />
           <StatBento icon={BookOpen} label="Syllabus" value={<><AnimatedCounter value={overall} suffix="%" /></>} sub="On track" tone="primary" delay={160} />
           <StatBento icon={CheckCircle2} label="Accuracy" value={<><AnimatedCounter value={72} suffix="%" /></>} sub="last 20 MCQs" tone="highlight" delay={240} />
