@@ -55,12 +55,14 @@ const recentActivity = [
 ];
 
 function Dashboard() {
-  const done = todaysPlan.filter((t) => t.done).length;
+  const { streak, tasks: plannerTasks, weeklyGoalHrs } = usePlannerStore();
+  const done = plannerTasks.filter((t) => t.done).length;
+  const totalToday = plannerTasks.length;
   const topics = syllabus.flatMap((p) => p.topics);
   const overall = Math.round(topics.reduce((s, t) => s + t.progress, 0) / topics.length);
-  const targetHours = 6;
-  const doneHours = 4.2;
-  const targetPct = Math.round((doneHours / targetHours) * 100);
+  const targetHours = Math.max(1, Math.round((weeklyGoalHrs / 7) * 10) / 10);
+  const doneHours = Math.round(done * 0.5 * 10) / 10;
+  const targetPct = Math.min(100, Math.round((doneHours / targetHours) * 100));
   const maxWeek = Math.max(...weeklyHours);
 
   const { data: liveNews } = useQuery({
