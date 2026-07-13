@@ -143,7 +143,7 @@ function Dashboard() {
 
         {/* Quick stats bento row */}
         <section className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-          <StatBento icon={Flame} label="Streak" value={<><AnimatedCounter value={12} /> d</>} sub="Best: 18" tone="gold" flame delay={0} />
+          <StatBento icon={Flame} label="Streak" value={<><AnimatedCounter value={streak} /> d</>} sub={streak === 0 ? "Start today" : `Keep going`} tone="gold" flame delay={0} />
           <StatBento icon={TrendingUp} label="Mock avg" value={<><AnimatedCounter value={118} />/200</>} sub="+6 vs last wk" tone="success" delay={80} />
           <StatBento icon={BookOpen} label="Syllabus" value={<><AnimatedCounter value={overall} suffix="%" /></>} sub="On track" tone="primary" delay={160} />
           <StatBento icon={CheckCircle2} label="Accuracy" value={<><AnimatedCounter value={72} suffix="%" /></>} sub="last 20 MCQs" tone="highlight" delay={240} />
