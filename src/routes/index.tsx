@@ -1,13 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import {
   Newspaper, CalendarCheck2, FileQuestion, PenLine, Sparkles,
   ArrowRight, Flame, Target, Clock, TrendingUp, BookOpen, CheckCircle2, Circle, Radio,
-  Zap, Award, Quote, Activity, BarChart3, ChevronRight, Bookmark, Play,
+  Zap, Award, Quote, Activity, BarChart3, ChevronRight, ChevronDown, Bookmark, Play,
 } from "lucide-react";
-import { headlines, todaysPlan, syllabus } from "@/data/mock";
+import { headlines, todaysPlan, syllabus, type SyllabusPaper, type SyllabusTopic } from "@/data/mock";
+import { syllabusDetail, paperOverview } from "@/data/syllabusDetail";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
 import { fetchLatestNews } from "@/lib/news.functions";
 
