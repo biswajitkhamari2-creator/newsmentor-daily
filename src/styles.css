@@ -205,6 +205,15 @@
   83%  { color: #f39c12; }
   100% { color: #c9a84c; }
 }
+@keyframes moon-glow {
+  0%   { opacity: 0; transform: scale(0.4) rotate(-30deg); filter: drop-shadow(0 0 0 rgba(255,220,120,0)); }
+  40%  { opacity: 1; transform: scale(1.15) rotate(0deg); filter: drop-shadow(0 0 18px rgba(255,220,120,0.9)); }
+  70%  { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 10px rgba(255,220,120,0.55)); }
+  100% { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 22px rgba(255,220,120,0.85)); }
+}
+@utility animate-moon-glow {
+  animation: moon-glow 1.4s ease-out both, pulse-glow 2.6s ease-in-out 1.4s infinite;
+}
 
 @utility animate-blink-soft {
   animation: blink-soft 1.4s ease-in-out infinite;
