@@ -113,7 +113,7 @@ function Dashboard() {
                 {new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
               </div>
               <h1 className="mt-3 font-serif text-4xl sm:text-5xl lg:text-6xl leading-[1.02] flex flex-wrap items-center gap-x-3">
-                <span>
+                <span className="animate-hue-cycle">
                   {typed}
                   {!typedDone && <span className="inline-block w-[3px] h-[0.9em] align-middle bg-gold ml-1 animate-blink-soft" />}
                 </span>
