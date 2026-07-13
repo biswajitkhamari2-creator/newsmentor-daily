@@ -4,8 +4,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { RotateCcw, BookOpen, CheckCircle2, Sparkles, CalendarDays } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { RotateCcw, BookOpen, CheckCircle2, Sparkles, CalendarDays, Library, TrendingUp, FileText } from "lucide-react";
 import { subjects } from "@/data/subjectMap";
+import { syllabus, pyqs, type SyllabusTopic } from "@/data/mock";
+import { syllabusDetail } from "@/data/syllabusDetail";
+
+// Map each topic id to the PYQ `subject` strings that count as "this topic".
+const topicPyqSubjects: Record<string, string[]> = {
+  t1: ["History"], t2: ["History"], t3: ["History"], t4: ["History"],
+  t5: ["Society"], t6: ["Geography"],
+  t7: ["Polity"], t8: ["Governance"], t9: ["IR"], t10: ["Governance"],
+  t11: ["Economy"], t12: ["Environment"], t13: ["Science & Tech"],
+  t14: ["Security"], t15: ["Disaster"],
+  t16: ["Ethics"], t17: ["Ethics"], t18: ["Ethics"],
+};
+
 
 export const Route = createFileRoute("/revision")({
   head: () => ({
