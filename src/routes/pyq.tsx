@@ -50,11 +50,16 @@ function PyqPage() {
         </p>
       </header>
 
-      <Tabs defaultValue="pyq">
+      <Tabs defaultValue="live">
         <TabsList>
+          <TabsTrigger value="live"><Radio className="h-3.5 w-3.5 mr-1" /> Live from backend</TabsTrigger>
           <TabsTrigger value="pyq">PYQ Bank</TabsTrigger>
           <TabsTrigger value="mock">Mock Tests</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="live" className="mt-4">
+          <LivePractice />
+        </TabsContent>
 
         <TabsContent value="pyq" className="mt-4 space-y-4">
           <Card className="shadow-sm">
