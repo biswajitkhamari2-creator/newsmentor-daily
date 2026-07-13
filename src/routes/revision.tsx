@@ -92,18 +92,6 @@ function Revision() {
 
   if (!ready) return <div className="px-6 py-10 text-muted-foreground">Loading…</div>;
 
-  if (archive.length === 0) {
-    return (
-      <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-3xl mx-auto">
-        <div className="text-xs uppercase tracking-[0.3em] text-gold">Revision</div>
-        <h1 className="font-serif text-4xl sm:text-5xl mt-1">Nothing to revise yet</h1>
-        <p className="text-muted-foreground mt-3">
-          Head to <span className="font-medium">Study Planner</span>, pick a subject for today, and tick off syllabus points as you study them.
-          They'll show up here for spaced revision from the next day.
-        </p>
-      </div>
-    );
-  }
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6 max-w-[1100px] mx-auto">
