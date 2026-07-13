@@ -16,9 +16,9 @@ export const generateMainsQuestions = createServerFn({ method: "POST" })
 
     const gateway = createLovableAiGatewayProvider(key);
 
-    const { experimental_output } = await generateText({
+    const { output } = await generateText({
       model: gateway("google/gemini-3-flash-preview"),
-      experimental_output: Output.object({
+      output: Output.object({
         schema: z.object({
           questions: z.array(
             z.object({
@@ -37,5 +37,5 @@ export const generateMainsQuestions = createServerFn({ method: "POST" })
       prompt: `Generate ${data.count} UPSC Mains questions on the topic: "${data.topic}". Mix mark weights and papers where relevant.`,
     });
 
-    return experimental_output;
+    return output;
   });
