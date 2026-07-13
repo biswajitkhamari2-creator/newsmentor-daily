@@ -19,64 +19,6 @@ export type InstitutionBucket = {
   items: InstitutionItem[];
 };
 
-const SOURCES: Array<{
-  key: string;
-  name: string;
-  tagline: string;
-  site: string;
-  domain: string;
-  accent: string;
-}> = [
-  {
-    key: "vision",
-    name: "Vision IAS",
-    tagline: "Daily Current Affairs & Monthly Magazine",
-    site: "https://www.visionias.in",
-    domain: "visionias.in",
-    accent: "from-amber-500/20 to-orange-500/5",
-  },
-  {
-    key: "drishti",
-    name: "Drishti IAS",
-    tagline: "Daily News Analysis & Editorials",
-    site: "https://www.drishtiias.com",
-    domain: "drishtiias.com",
-    accent: "from-rose-500/20 to-pink-500/5",
-  },
-  {
-    key: "insights",
-    name: "Insights IAS",
-    tagline: "Daily Current Affairs + Secure",
-    site: "https://www.insightsonindia.com",
-    domain: "insightsonindia.com",
-    accent: "from-sky-500/20 to-blue-500/5",
-  },
-  {
-    key: "iasbaba",
-    name: "IASbaba",
-    tagline: "Daily News, Quiz & TLP",
-    site: "https://iasbaba.com",
-    domain: "iasbaba.com",
-    accent: "from-emerald-500/20 to-teal-500/5",
-  },
-  {
-    key: "forumias",
-    name: "ForumIAS",
-    tagline: "9 PM Brief & Editorials",
-    site: "https://blog.forumias.com",
-    domain: "forumias.com",
-    accent: "from-violet-500/20 to-purple-500/5",
-  },
-  {
-    key: "pib",
-    name: "PIB India",
-    tagline: "Government Press Releases",
-    site: "https://pib.gov.in",
-    domain: "pib.gov.in",
-    accent: "from-yellow-500/20 to-amber-500/5",
-  },
-];
-
 function decode(s: string) {
   return s
     .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
@@ -101,31 +43,29 @@ function stripHtml(s: string) {
 
 function toBullets(text: string): string[] {
   if (!text) return [];
-  const sentences = text
+  return text
     .split(/(?<=[.!?])\s+(?=[A-Z0-9])/)
     .map((s) => s.trim())
-    .filter((s) => s.length > 25 && s.length < 260);
-  return sentences.slice(0, 5);
+    .filter((s) => s.length > 25 && s.length < 260)
+    .slice(0, 5);
 }
 
-async function fetchGoogleNews(domain: string, when: "1d" | "7d") {
-  const q = encodeURIComponent(`site:${domain} when:${when}`);
-  const url = `https://news.google.com/rss/search?q=${q}&hl=en-IN&gl=IN&ceid=IN:en`;
+const UA =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+
+async function fetchText(url: string) {
   const res = await fetch(url, {
-    headers: { "User-Agent": "Mozilla/5.0 NewsMentorDaily/1.0" },
+    headers: { "User-Agent": UA, Accept: "text/html,application/xhtml+xml,application/xml" },
+    redirect: "follow",
   });
-  if (!res.ok) return "";
+  if (!res.ok) throw new Error(`${res.status}`);
   return res.text();
 }
 
-function parseItems(xml: string, sourceName: string, keyPrefix: string): InstitutionItem[] {
+function parseRss(xml: string, sourceName: string, keyPrefix: string, limit = 8): InstitutionItem[] {
   const blocks = xml.match(/<item[\s\S]*?<\/item>/g) ?? [];
-  return blocks.slice(0, 8).map((block, idx) => {
-    const rawTitle = pick(block, "title");
-    const src = pick(block, "source");
-    const title = src
-      ? rawTitle.replace(new RegExp(`\\s*-\\s*${src}\\s*$`), "")
-      : rawTitle;
+  return blocks.slice(0, limit).map((block, idx) => {
+    const title = pick(block, "title");
     const description = stripHtml(pick(block, "description"));
     return {
       id: `${keyPrefix}-${idx}`,
@@ -139,6 +79,130 @@ function parseItems(xml: string, sourceName: string, keyPrefix: string): Institu
   });
 }
 
+function titleFromSlug(slug: string) {
+  return slug
+    .replace(/[-_]+/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+async function fetchVisionIAS(): Promise<InstitutionItem[]> {
+  const html = await fetchText("https://visionias.in/current-affairs/news-today");
+  const re =
+    /href="(\/current-affairs\/news-today\/(\d{4}-\d{2}-\d{2})\/[a-z0-9-]+\/[a-z0-9-]+)"/g;
+  const seen = new Set<string>();
+  const items: InstitutionItem[] = [];
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html)) !== null && items.length < 8) {
+    if (seen.has(m[1])) continue;
+    seen.add(m[1]);
+    const path = m[1];
+    const slug = path.split("/").pop() || "";
+    items.push({
+      id: `vision-${items.length}`,
+      title: titleFromSlug(slug),
+      link: `https://visionias.in${path}`,
+      pubDate: `${m[2]}T00:00:00Z`,
+      summary: "",
+      bullets: [],
+      source: "Vision IAS",
+    });
+  }
+  return items;
+}
+
+async function fetchDrishti(): Promise<InstitutionItem[]> {
+  const html = await fetchText(
+    "https://www.drishtiias.com/daily-updates/daily-news-analysis",
+  );
+  const re =
+    /href="(https:\/\/www\.drishtiias\.com\/daily-updates\/daily-news-analysis\/[a-z0-9-]+)"/g;
+  const seen = new Set<string>();
+  const items: InstitutionItem[] = [];
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html)) !== null && items.length < 8) {
+    const url = m[1];
+    if (url.endsWith("daily-news-analysis")) continue;
+    if (seen.has(url)) continue;
+    seen.add(url);
+    const slug = url.split("/").pop() || "";
+    items.push({
+      id: `drishti-${items.length}`,
+      title: titleFromSlug(slug.replace(/-\d+$/, "")),
+      link: url,
+      summary: "",
+      bullets: [],
+      source: "Drishti IAS",
+    });
+  }
+  return items;
+}
+
+const SOURCES: Array<{
+  key: string;
+  name: string;
+  tagline: string;
+  site: string;
+  accent: string;
+  load: () => Promise<InstitutionItem[]>;
+}> = [
+  {
+    key: "vision",
+    name: "Vision IAS",
+    tagline: "Daily News Today",
+    site: "https://visionias.in/current-affairs",
+    accent: "from-amber-500/20 to-orange-500/5",
+    load: fetchVisionIAS,
+  },
+  {
+    key: "drishti",
+    name: "Drishti IAS",
+    tagline: "Daily News Analysis",
+    site: "https://www.drishtiias.com/daily-updates/daily-news-analysis",
+    accent: "from-rose-500/20 to-pink-500/5",
+    load: fetchDrishti,
+  },
+  {
+    key: "insights",
+    name: "Insights IAS",
+    tagline: "Daily Current Affairs",
+    site: "https://www.insightsonindia.com",
+    accent: "from-sky-500/20 to-blue-500/5",
+    load: async () =>
+      parseRss(await fetchText("https://www.insightsonindia.com/feed/"), "Insights IAS", "insights"),
+  },
+  {
+    key: "iasbaba",
+    name: "IASbaba",
+    tagline: "Daily News, Quiz & TLP",
+    site: "https://iasbaba.com",
+    accent: "from-emerald-500/20 to-teal-500/5",
+    load: async () =>
+      parseRss(await fetchText("https://iasbaba.com/feed/"), "IASbaba", "iasbaba"),
+  },
+  {
+    key: "forumias",
+    name: "ForumIAS",
+    tagline: "9 PM Brief & Editorials",
+    site: "https://forumias.com/blog",
+    accent: "from-violet-500/20 to-purple-500/5",
+    load: async () =>
+      parseRss(await fetchText("https://forumias.com/blog/feed/"), "ForumIAS", "forumias"),
+  },
+  {
+    key: "pib",
+    name: "PIB India",
+    tagline: "Government Press Releases",
+    site: "https://pib.gov.in",
+    accent: "from-yellow-500/20 to-amber-500/5",
+    load: async () =>
+      parseRss(
+        await fetchText("https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=3"),
+        "PIB India",
+        "pib",
+      ),
+  },
+];
+
 export const fetchInstitutionalNews = createServerFn({ method: "GET" })
   .inputValidator((raw: unknown) => {
     const r = (raw ?? {}) as { range?: "1d" | "7d" };
@@ -146,29 +210,31 @@ export const fetchInstitutionalNews = createServerFn({ method: "GET" })
   })
   .handler(async ({ data }): Promise<InstitutionBucket[]> => {
     const range = data.range;
+    const cutoff =
+      range === "1d" ? Date.now() - 2 * 24 * 60 * 60 * 1000 : Date.now() - 8 * 24 * 60 * 60 * 1000;
+
     const results = await Promise.all(
       SOURCES.map(async (s) => {
+        let items: InstitutionItem[] = [];
         try {
-          const xml = await fetchGoogleNews(s.domain, range);
-          const items = parseItems(xml, s.name, s.key);
-          return {
-            key: s.key,
-            name: s.name,
-            tagline: s.tagline,
-            site: s.site,
-            accent: s.accent,
-            items,
-          } satisfies InstitutionBucket;
+          items = await s.load();
         } catch {
-          return {
-            key: s.key,
-            name: s.name,
-            tagline: s.tagline,
-            site: s.site,
-            accent: s.accent,
-            items: [] as InstitutionItem[],
-          } satisfies InstitutionBucket;
+          items = [];
         }
+        // Filter by date when we have one
+        const filtered = items.filter((it) => {
+          if (!it.pubDate) return true;
+          const t = new Date(it.pubDate).getTime();
+          return !t || t >= cutoff;
+        });
+        return {
+          key: s.key,
+          name: s.name,
+          tagline: s.tagline,
+          site: s.site,
+          accent: s.accent,
+          items: filtered.slice(0, 8),
+        } satisfies InstitutionBucket;
       }),
     );
     return results;
