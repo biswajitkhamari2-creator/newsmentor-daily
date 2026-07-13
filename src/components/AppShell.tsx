@@ -111,6 +111,32 @@ function AppSidebar() {
   );
 }
 
+function AppHeader() {
+  const { streak } = usePlannerStore();
+  return (
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b bg-background/80 backdrop-blur px-3 sm:px-6">
+      <SidebarTrigger />
+      <div className="relative hidden md:block flex-1 max-w-md">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Search topics, PYQs, editorials…"
+          className="pl-9 h-9 bg-muted/40 border-transparent focus-visible:border-input"
+        />
+      </div>
+      <div className="ml-auto flex items-center gap-2">
+        <Badge variant="outline" className="hidden sm:inline-flex gap-1 border-gold/50 text-gold">
+          <Flame className="h-3 w-3" /> {streak}
+        </Badge>
+        <ThemeToggle />
+        <div className="grid h-8 w-8 place-items-center rounded-full bg-primary text-primary-foreground text-xs font-semibold">
+          AK
+        </div>
+      </div>
+    </header>
+  );
+}
+
+
 export function AppShell({ children }: { children: ReactNode }) {
   return (
     <SidebarProvider>
