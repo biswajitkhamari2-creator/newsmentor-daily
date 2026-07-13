@@ -245,15 +245,15 @@ function Dashboard() {
           {/* Weekly progress chart */}
           <BentoCard className="lg:col-span-3" delay={400}>
             <BentoHeader eyebrow="Last 7 days" title="Weekly focus" icon={BarChart3} />
-            <div className="mt-6 flex items-end justify-between gap-2 h-32">
+            <div className="mt-6 flex items-stretch justify-between gap-2 h-36">
               {weeklyHours.map((h, i) => {
                 const pct = (h / maxWeek) * 100;
                 const isToday = i === 6;
                 return (
-                  <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                    <div className="w-full flex-1 flex items-end">
+                  <div key={i} className="flex-1 flex flex-col items-center gap-2 h-full">
+                    <div className="w-full flex-1 flex items-end min-h-0">
                       <div
-                        className={`w-full rounded-t-md ${isToday ? "gradient-gold" : "bg-primary/70"} animate-bar transition-all hover:opacity-90`}
+                        className={`w-full rounded-t-md ${isToday ? "gradient-gold" : "bg-primary/70"} animate-bar hover:opacity-90 transition`}
                         style={{ height: `${pct}%`, animationDelay: `${i * 60}ms` }}
                         title={`${h} hrs`}
                       />
