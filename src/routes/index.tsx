@@ -110,17 +110,20 @@ function FactsRotator() {
         return (
           <div
             key={i}
-            className="flex justify-between gap-2 border-b border-dashed pb-2 last:border-0 animate-fade-in-up"
+            className="flex items-start justify-between gap-3 border-b border-dashed pb-2 last:border-0 animate-fade-in-up"
             style={{ animationDelay: `${200 + i * 80}ms` }}
           >
-            <span className="text-muted-foreground shrink-0">{f.k}</span>
+            <span
+              className={`shrink-0 font-mono text-xs tabular-nums px-1.5 py-0.5 rounded bg-gold/10 text-gold border border-gold/20 transition-all duration-300 ${
+                isBlink ? "opacity-0 blur-sm -translate-y-1" : "opacity-100 blur-0 translate-y-0"
+              }`}
+            >
+              {f.k}
+            </span>
             <span
               className={`font-medium text-right transition-all duration-300 ${
                 isBlink ? "opacity-0 blur-sm translate-y-1" : "opacity-100 blur-0 translate-y-0"
               }`}
-              style={{
-                textShadow: isBlink ? "none" : "0 0 0 transparent",
-              }}
             >
               {f.v}
             </span>
