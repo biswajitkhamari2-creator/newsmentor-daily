@@ -3,14 +3,15 @@ import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles, Send, Loader2 } from "lucide-react";
+import { Sparkles, Send, Loader2, AlertCircle } from "lucide-react";
 import { seedChat, type MentorMessage } from "@/data/mock";
+import { askMentor, type MentorMsg } from "@/lib/api";
 
 export const Route = createFileRoute("/mentor")({
   head: () => ({
     meta: [
       { title: "AI Mentor — NewsMentor Daily" },
-      { name: "description", content: "Chat with a 24×7 UPSC mentor: syllabus doubts, PYQ analysis, current affairs and answer-writing feedback." },
+      { name: "description", content: "Chat with a 24×7 UPSC mentor powered by Gemini: syllabus doubts, PYQ analysis, current affairs and answer-writing feedback." },
     ],
   }),
   component: Mentor,
@@ -23,10 +24,6 @@ const suggestions = [
   "Frame an intro for the UCC question",
 ];
 
-const replies: Record<string, string> = {
-  default:
-    "Here's a structured take:\n\n• **Context** — Anchor the topic in the current syllabus box.\n• **Key facts** — 3–4 numbers or landmark cases.\n• **Analytical layer** — link to a theme (federalism, ethics, sustainability).\n• **Conclusion** — a forward-looking line that quotes a report or thinker.\n\nWant me to expand any of these into a 250-word answer?",
-};
 
 function Mentor() {
   const [messages, setMessages] = useState<MentorMessage[]>(seedChat);
