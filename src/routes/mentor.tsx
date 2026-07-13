@@ -64,7 +64,10 @@ function Mentor() {
     }
   };
 
-  const today = new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const [today, setToday] = useState("");
+  useEffect(() => {
+    setToday(new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" }));
+  }, []);
   const brief = headlines.slice(0, 4);
 
   return (
