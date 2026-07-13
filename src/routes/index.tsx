@@ -59,6 +59,16 @@ function Dashboard() {
   const targetPct = Math.round((doneHours / targetHours) * 100);
   const maxWeek = Math.max(...weeklyHours);
 
+  const { data: liveNews } = useQuery({
+    queryKey: ["latest-news"],
+    queryFn: () => fetchLatestNews(),
+    staleTime: 5 * 60_000,
+    refetchInterval: 5 * 60_000,
+  });
+  const tickerItems = (liveNews && liveNews.length > 0)
+    ? liveNews.map((n) => n.title)
+    : ticker;
+
   return (
     <div className="relative">
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 gradient-mesh-subtle" />
