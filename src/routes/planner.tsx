@@ -170,8 +170,12 @@ function SchedulePage() {
         ))}
       </div>
 
+      {/* Syllabus Tracker */}
+      <SyllabusTracker />
+
       {/* Timeline */}
       <section className="space-y-3">
+
         <div className="flex items-baseline justify-between">
           <h2 className="font-serif text-2xl">Daily Timeline</h2>
           <div className="text-xs text-muted-foreground">{filtered.length} task{filtered.length === 1 ? "" : "s"}</div>
