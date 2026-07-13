@@ -130,30 +130,21 @@ function AnswerWriting() {
           </Card>
 
           <Card className="shadow-sm">
-            <CardHeader className="pb-3"><CardTitle className="font-serif text-xl flex items-center gap-2"><PenLine className="h-4 w-4 text-gold" /> Recent</CardTitle></CardHeader>
+            <CardHeader className="pb-3"><CardTitle className="font-serif text-xl flex items-center gap-2"><PenLine className="h-4 w-4 text-gold" /> This session</CardTitle></CardHeader>
             <CardContent className="space-y-3">
-              {submissions.map((s) => (
+              {history.length === 0 && (
+                <p className="text-xs text-muted-foreground">Your submissions this session will appear here. Nothing is stored across reloads.</p>
+              )}
+              {history.map((s) => (
                 <div key={s.id} className="border-b last:border-0 pb-3 last:pb-0">
                   <div className="text-sm line-clamp-2">{s.title}</div>
-                  <div className="flex justify-between mt-1 text-xs text-muted-foreground">
-                    <span>{s.when}</span>
-                    <span className="font-serif text-gold text-sm">{s.score}/{s.max}</span>
-                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">{s.when}</div>
                 </div>
               ))}
             </CardContent>
           </Card>
         </aside>
       </div>
-    </div>
-  );
-}
-
-function Stat({ k, v }: { k: string; v: string }) {
-  return (
-    <div className="rounded-md bg-background p-2 border">
-      <div className="text-[11px] text-muted-foreground">{k}</div>
-      <div className="font-serif text-xl text-primary">{v}</div>
     </div>
   );
 }
