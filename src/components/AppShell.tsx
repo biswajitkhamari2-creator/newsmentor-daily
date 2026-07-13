@@ -118,8 +118,6 @@ function AppSidebar() {
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { user, signOut } = useAuth();
-  const initials = (user?.email ?? "?").slice(0, 2).toUpperCase();
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
@@ -139,26 +137,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <Flame className="h-3 w-3" /> 12
               </Badge>
               <ThemeToggle />
-              {user ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="grid h-8 w-8 place-items-center rounded-full bg-primary text-primary-foreground text-xs font-semibold">
-                      {initials}
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuLabel className="truncate">{user.email}</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => signOut()}>
-                      <LogOut className="h-4 w-4 mr-2" /> Sign out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : (
-                <Button asChild size="sm" className="bg-gold text-gold-foreground hover:bg-gold/90">
-                  <Link to="/auth">Sign in</Link>
-                </Button>
-              )}
+              <div className="grid h-8 w-8 place-items-center rounded-full bg-primary text-primary-foreground text-xs font-semibold">
+                AK
+              </div>
             </div>
           </header>
           <main className="flex-1 animate-fade-in">{children}</main>
