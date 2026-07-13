@@ -62,13 +62,24 @@ function Planner() {
                 </CardHeader>
                 <CardContent className="grid gap-3 sm:grid-cols-2">
                   {paper.topics.map((t) => (
-                    <div key={t.id} className="rounded-lg border p-3 hover:border-gold/50 transition">
-                      <div className="flex justify-between text-sm mb-1.5">
-                        <span className="font-medium">{t.name}</span>
-                        <span className="text-muted-foreground text-xs">{t.progress}%</span>
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => setOpenTopic({ topic: t, paper })}
+                      className="text-left rounded-lg border p-3 hover:border-gold/60 hover:shadow-sm transition group focus:outline-none focus:ring-2 focus:ring-gold/40"
+                    >
+                      <div className="flex justify-between text-sm mb-1.5 items-center">
+                        <span className="font-medium flex items-center gap-1.5">
+                          <BookOpen className="h-3.5 w-3.5 text-gold/70" />
+                          {t.name}
+                        </span>
+                        <span className="text-muted-foreground text-xs inline-flex items-center gap-1">
+                          {t.progress}%
+                          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground group-hover:text-gold transition" />
+                        </span>
                       </div>
                       <Progress value={t.progress} className="h-1.5" />
-                    </div>
+                    </button>
                   ))}
                 </CardContent>
               </Card>
