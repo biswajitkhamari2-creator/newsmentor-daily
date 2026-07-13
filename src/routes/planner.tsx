@@ -134,7 +134,22 @@ function Planner() {
           topicId: "extra", topicName: todaySubject.name, point,
         })).filter((it) => !archivedIds.has(it.id));
 
-        const remaining = topicBlocks.reduce((n, b) => n + b.items.length, 0) + extraItems.length;
+        // Practical daily portion: cap today's checklist to a small chunk.
+        const DAILY_LIMIT = 4;
+        const flat = [
+          ...topicBlocks.flatMap((b) => b.items.map((it) => ({ ...it, _tid: b.tid, _topicName: b.topicName, _kind: "topic" as const }))),
+          ...extraItems.map((it) => ({ ...it, _tid: "extra", _topicName: todaySubject.name, _kind: "extra" as const })),
+        ];
+        const totalPending = flat.length;
+        const todaysSlice = flat.slice(0, DAILY_LIMIT);
+        const todayTopicBlocks: typeof topicBlocks = [];
+        todaysSlice.filter((x) => x._kind === "topic").forEach((it) => {
+          let b = todayTopicBlocks.find((x) => x.tid === it._tid);
+          if (!b) { b = { tid: it._tid, topicName: it._topicName, items: [] }; todayTopicBlocks.push(b); }
+          const { _tid, _topicName, _kind, ...rest } = it; b.items.push(rest);
+        });
+        const todayExtra = todaysSlice.filter((x) => x._kind === "extra").map(({ _tid, _topicName, _kind, ...rest }) => rest);
+        const remaining = todaysSlice.length;
         const archivedForSubject = archive.filter((a) => a.subjectKey === todaySubject.key).length;
 
         return (
@@ -142,10 +157,10 @@ function Planner() {
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between flex-wrap gap-2">
               <div>
-                <div className="text-xs uppercase tracking-[0.3em] text-gold">Today's subject</div>
+                <div className="text-xs uppercase tracking-[0.3em] text-gold">Today's plan</div>
                 <CardTitle className="font-serif text-3xl mt-1">{todaySubject.name}</CardTitle>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {todaySubject.paper} · {remaining} left to study{archivedForSubject > 0 ? ` · ${archivedForSubject} already archived` : ""}.
+                  {todaySubject.paper} · today's portion: {remaining} of {totalPending} pending · {archivedForSubject} archived.
                 </p>
               </div>
               <div className="flex gap-2 flex-wrap">
@@ -157,18 +172,24 @@ function Planner() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {remaining === 0 && (
+            {totalPending === 0 && (
               <div className="rounded-lg border border-dashed p-6 text-center">
                 <div className="font-serif text-xl">All caught up on {todaySubject.name}.</div>
                 <p className="text-sm text-muted-foreground mt-1">Every point is in your archive. Pick another subject tomorrow.</p>
               </div>
             )}
-            {topicBlocks.map((block) => (
+            {totalPending > 0 && remaining === 0 && (
+              <div className="rounded-lg border border-dashed p-6 text-center">
+                <div className="font-serif text-xl">Today's portion is done.</div>
+                <p className="text-sm text-muted-foreground mt-1">{totalPending} more waiting for tomorrow. Rest well.</p>
+              </div>
+            )}
+            {todayTopicBlocks.map((block) => (
               <div key={block.tid} className="rounded-lg border p-4 bg-card">
                 <div className="flex items-center gap-2 mb-3">
                   <BookOpen className="h-4 w-4 text-gold" />
                   <span className="font-medium">{block.topicName}</span>
-                  <Badge variant="outline" className="text-[10px] ml-auto">{block.items.length} to study</Badge>
+                  <Badge variant="outline" className="text-[10px] ml-auto">{block.items.length} today</Badge>
                 </div>
                 <ul className="space-y-2">
                   {block.items.map((it) => (
@@ -180,11 +201,11 @@ function Planner() {
                 </ul>
               </div>
             ))}
-            {extraItems.length > 0 && (
+            {todayExtra.length > 0 && (
               <div className="rounded-lg border p-4 bg-card">
                 <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">Official syllabus</div>
                 <ul className="space-y-2">
-                  {extraItems.map((it) => (
+                  {todayExtra.map((it) => (
                     <li key={it.id} className="flex items-start gap-3">
                       <Checkbox className="mt-0.5" onCheckedChange={(v) => v && markPointDone(it)} aria-label="Mark as studied" />
                       <span className="text-sm leading-relaxed">{it.point}</span>
