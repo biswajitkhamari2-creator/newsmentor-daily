@@ -189,13 +189,3 @@ function StatChip({ icon: Icon, label, value }: { icon: any; label: string; valu
     </div>
   );
 }
-
-function StatChip({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
-  return (
-    <div className="flex items-center gap-2 rounded-lg border bg-card px-3 py-2 shadow-sm">
-      <Icon className="h-4 w-4 text-gold" />
-      <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="font-serif text-lg">{value}</div>
-    </div>
-  );
-}
