@@ -338,33 +338,49 @@ function Dashboard() {
             </div>
           </BentoCard>
 
-          {/* Performance analytics */}
+          {/* Performance analytics — live */}
           <BentoCard className="lg:col-span-3" delay={480}>
             <BentoHeader eyebrow="Performance" title="Recent mocks" icon={Activity} to="/pyq" />
-            <div className="mt-4 space-y-3">
-              {[
-                { name: "Prelims Mock #13", score: 118, max: 200, delta: +6 },
-                { name: "GS-II Sectional", score: 62, max: 100, delta: +4 },
-                { name: "CSAT #6", score: 54, max: 80, delta: -2 },
-              ].map((m) => {
-                const pct = (m.score / m.max) * 100;
-                return (
-                  <div key={m.name}>
-                    <div className="flex justify-between text-sm mb-1.5">
-                      <span className="truncate">{m.name}</span>
-                      <span className="tabular-nums font-medium">
-                        {m.score}/{m.max}
-                        <span className={`ml-2 text-xs ${m.delta >= 0 ? "text-success" : "text-destructive"}`}>
-                          {m.delta >= 0 ? "▲" : "▼"} {Math.abs(m.delta)}
+            <div className="mt-1 mb-3 flex items-center gap-1.5 text-[10px] uppercase tracking-[0.22em] text-success">
+              <span className="relative inline-flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-success opacity-75 animate-ping" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-success" />
+              </span>
+              Live · synced from attempts
+            </div>
+            <div className="mt-3 space-y-3">
+              {(() => {
+                const attempted = mockTests.filter((m) => m.attempted && typeof m.score === "number");
+                if (attempted.length === 0) {
+                  return <div className="text-sm text-muted-foreground">No mock attempts yet. Start one to see live scores here.</div>;
+                }
+                return attempted.slice(0, 4).map((m, idx) => {
+                  const max = m.type === "Prelims" ? m.questions * 2 : m.type === "Mains" ? m.questions * 10 : m.questions;
+                  const score = m.score!;
+                  const pct = Math.min(100, (score / max) * 100);
+                  const prev = attempted[idx + 1];
+                  const prevPct = prev && typeof prev.score === "number"
+                    ? (prev.score / (prev.type === "Prelims" ? prev.questions * 2 : prev.type === "Mains" ? prev.questions * 10 : prev.questions)) * 100
+                    : pct;
+                  const delta = Math.round(pct - prevPct);
+                  return (
+                    <div key={m.id}>
+                      <div className="flex justify-between text-sm mb-1.5 gap-2">
+                        <span className="truncate">{m.title}</span>
+                        <span className="tabular-nums font-medium shrink-0">
+                          {score}/{max}
+                          <span className={`ml-2 text-xs ${delta >= 0 ? "text-success" : "text-destructive"}`}>
+                            {delta >= 0 ? "▲" : "▼"} {Math.abs(delta)}
+                          </span>
                         </span>
-                      </span>
+                      </div>
+                      <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                        <div className="h-full gradient-emerald animate-bar" style={{ width: `${pct}%` }} />
+                      </div>
                     </div>
-                    <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                      <div className="h-full gradient-emerald animate-bar" style={{ width: `${pct}%` }} />
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                });
+              })()}
             </div>
           </BentoCard>
 
