@@ -122,6 +122,72 @@ function Planner() {
           </Card>
         </aside>
       </div>
+        </aside>
+      </div>
+
+      <Dialog open={!!openTopic} onOpenChange={(o) => !o && setOpenTopic(null)}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          {openTopic && (() => {
+            const detail = syllabusDetail[openTopic.topic.id];
+            const overview = paperOverview[openTopic.paper.id];
+            return (
+              <>
+                <DialogHeader>
+                  <div className="text-[11px] uppercase tracking-[0.2em] text-gold">{openTopic.paper.name}</div>
+                  <DialogTitle className="font-serif text-2xl sm:text-3xl mt-1">{openTopic.topic.name}</DialogTitle>
+                  {detail?.paperRef && (
+                    <DialogDescription className="text-xs">
+                      <Badge variant="outline" className="border-primary/30 text-primary">{detail.paperRef}</Badge>
+                    </DialogDescription>
+                  )}
+                </DialogHeader>
+
+                {overview && (
+                  <p className="text-sm text-muted-foreground border-l-2 border-gold/40 pl-3 italic">
+                    {overview}
+                  </p>
+                )}
+
+                <div className="mt-2">
+                  <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+                    Official UPSC syllabus points
+                  </div>
+                  {detail ? (
+                    <ul className="space-y-2.5">
+                      {detail.points.map((p, i) => (
+                        <li key={i} className="flex gap-2.5 text-sm leading-relaxed">
+                          <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-gold shrink-0" />
+                          <span>{p}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      Detailed points for this topic are being added shortly.
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between mt-4 pt-4 border-t text-xs text-muted-foreground">
+                  <span>Your progress</span>
+                  <span className="font-medium text-foreground">{openTopic.topic.progress}%</span>
+                </div>
+                <Progress value={openTopic.topic.progress} className="h-1.5" />
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function StatChip({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
+  return (
+    <div className="flex items-center gap-2 rounded-lg border bg-card px-3 py-2 shadow-sm">
+      <Icon className="h-4 w-4 text-gold" />
+      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className="font-serif text-lg">{value}</div>
     </div>
   );
 }
