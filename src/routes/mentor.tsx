@@ -105,7 +105,14 @@ function Mentor() {
           )}
         </div>
 
+        {error && (
+          <div className="border-t px-4 py-2 text-xs text-destructive flex items-center gap-2 bg-destructive/10">
+            <AlertCircle className="h-3.5 w-3.5" /> {error}
+          </div>
+        )}
+
         <div className="border-t p-4 space-y-3">
+
           <div className="flex flex-wrap gap-2">
             {suggestions.map((s) => (
               <button
