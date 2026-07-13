@@ -34,17 +34,37 @@ function Planner() {
   const [activeSubject, setActiveSubject] = useState<SubjectEntry | null>(null);
   const [todayKey, setTodayKey] = useState<string | null>(null);
 
+  type ArchiveItem = {
+    id: string;
+    subjectKey: string;
+    subjectName: string;
+    paper: string;
+    topicId: string;
+    topicName: string;
+    point: string;
+    doneAt: string;
+  };
+  const [archive, setArchive] = useState<ArchiveItem[]>([]);
+  const [archiveOpen, setArchiveOpen] = useState(false);
+
   // Persist "today's subject" — resets when the date changes.
   useEffect(() => {
     try {
       const raw = localStorage.getItem("planner:todaySubject");
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as { key: string; date: string };
-      const today = new Date().toDateString();
-      if (parsed.date === today) setTodayKey(parsed.key);
-      else localStorage.removeItem("planner:todaySubject");
+      if (raw) {
+        const parsed = JSON.parse(raw) as { key: string; date: string };
+        if (parsed.date === new Date().toDateString()) setTodayKey(parsed.key);
+        else localStorage.removeItem("planner:todaySubject");
+      }
+      const rawArc = localStorage.getItem("planner:studyArchive");
+      if (rawArc) setArchive(JSON.parse(rawArc) as ArchiveItem[]);
     } catch { /* ignore */ }
   }, []);
+
+  const persistArchive = (next: ArchiveItem[]) => {
+    setArchive(next);
+    try { localStorage.setItem("planner:studyArchive", JSON.stringify(next)); } catch { /* ignore */ }
+  };
 
   const pickTodaySubject = (key: string | null) => {
     setTodayKey(key);
@@ -55,6 +75,13 @@ function Planner() {
   };
 
   const todaySubject = todayKey ? subjects.find((s) => s.key === todayKey) ?? null : null;
+  const archivedIds = useMemo(() => new Set(archive.map((a) => a.id)), [archive]);
+
+  const markPointDone = (item: Omit<ArchiveItem, "doneAt">) => {
+    if (archivedIds.has(item.id)) return;
+    persistArchive([...archive, { ...item, doneAt: new Date().toISOString() }]);
+  };
+  const unmarkPoint = (id: string) => persistArchive(archive.filter((a) => a.id !== id));
 
   const done = tasks.filter((t) => t.done).length;
 
@@ -88,65 +115,79 @@ function Planner() {
         </div>
       </header>
 
-      {todaySubject ? (
+      {todaySubject ? (() => {
+        const topicBlocks = (todaySubject.topicIds ?? []).map((tid) => {
+          const detail = syllabusDetail[tid];
+          const topicMeta = syllabus.flatMap((p) => p.topics).find((t) => t.id === tid);
+          if (!detail || !topicMeta) return null;
+          const items = detail.points.map((point, idx) => ({
+            id: `${todaySubject.key}::${tid}::${idx}`,
+            subjectKey: todaySubject.key, subjectName: todaySubject.name, paper: todaySubject.paper,
+            topicId: tid, topicName: topicMeta.name, point,
+          })).filter((it) => !archivedIds.has(it.id));
+          return items.length ? { tid, topicName: topicMeta.name, items } : null;
+        }).filter(Boolean) as { tid: string; topicName: string; items: Omit<ArchiveItem, "doneAt">[] }[];
+
+        const extraItems = (todaySubject.extraPoints ?? []).map((point, idx) => ({
+          id: `${todaySubject.key}::extra::${idx}`,
+          subjectKey: todaySubject.key, subjectName: todaySubject.name, paper: todaySubject.paper,
+          topicId: "extra", topicName: todaySubject.name, point,
+        })).filter((it) => !archivedIds.has(it.id));
+
+        const remaining = topicBlocks.reduce((n, b) => n + b.items.length, 0) + extraItems.length;
+        const archivedForSubject = archive.filter((a) => a.subjectKey === todaySubject.key).length;
+
+        return (
         <Card className="shadow-sm border-gold/40 bg-gradient-to-br from-gold/5 to-transparent">
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between flex-wrap gap-2">
               <div>
                 <div className="text-xs uppercase tracking-[0.3em] text-gold">Today's subject</div>
                 <CardTitle className="font-serif text-3xl mt-1">{todaySubject.name}</CardTitle>
-                <p className="text-xs text-muted-foreground mt-1">{todaySubject.paper} · focus only on this today.</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {todaySubject.paper} · {remaining} left to study{archivedForSubject > 0 ? ` · ${archivedForSubject} already archived` : ""}.
+                </p>
               </div>
-              <Button size="sm" variant="ghost" onClick={() => pickTodaySubject(null)}>
-                <X className="h-4 w-4 mr-1" /> Change subject
-              </Button>
+              <div className="flex gap-2 flex-wrap">
+                <Button size="sm" variant="outline" onClick={() => setArchiveOpen(true)}>Archive ({archive.length})</Button>
+                <Button size="sm" variant="ghost" onClick={() => pickTodaySubject(null)}>
+                  <X className="h-4 w-4 mr-1" /> Change
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {todaySubject.topicIds?.map((tid) => {
-              const detail = syllabusDetail[tid];
-              const topicMeta = syllabus.flatMap((p) => p.topics).find((t) => t.id === tid);
-              if (!topicMeta) return null;
-              return (
-                <div key={tid} className="rounded-lg border p-4 bg-card">
-                  <div className="flex justify-between text-sm mb-2 items-center flex-wrap gap-2">
-                    <span className="font-medium flex items-center gap-1.5">
-                      <BookOpen className="h-4 w-4 text-gold" />
-                      {topicMeta.name}
-                    </span>
-                    <span className="text-muted-foreground text-xs">{topicMeta.progress}%</span>
-                  </div>
-                  <Progress value={topicMeta.progress} className="h-1.5" />
-                  <div className="flex items-center gap-1 mt-3">
-                    <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setProgress(tid, topicMeta.progress - 5)} aria-label="Decrease">
-                      <Minus className="h-3 w-3" />
-                    </Button>
-                    <Slider value={[topicMeta.progress]} onValueChange={(v) => setProgress(tid, v[0])} max={100} step={5} className="flex-1" />
-                    <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setProgress(tid, topicMeta.progress + 5)} aria-label="Increase">
-                      <Plus className="h-3 w-3" />
-                    </Button>
-                  </div>
-                  {detail && (
-                    <ul className="space-y-1.5 mt-4 border-t pt-3">
-                      {detail.points.map((p, i) => (
-                        <li key={i} className="flex gap-2 text-xs leading-relaxed text-muted-foreground">
-                          <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-gold shrink-0" />
-                          <span>{p}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+            {remaining === 0 && (
+              <div className="rounded-lg border border-dashed p-6 text-center">
+                <div className="font-serif text-xl">All caught up on {todaySubject.name}.</div>
+                <p className="text-sm text-muted-foreground mt-1">Every point is in your archive. Pick another subject tomorrow.</p>
+              </div>
+            )}
+            {topicBlocks.map((block) => (
+              <div key={block.tid} className="rounded-lg border p-4 bg-card">
+                <div className="flex items-center gap-2 mb-3">
+                  <BookOpen className="h-4 w-4 text-gold" />
+                  <span className="font-medium">{block.topicName}</span>
+                  <Badge variant="outline" className="text-[10px] ml-auto">{block.items.length} to study</Badge>
                 </div>
-              );
-            })}
-            {todaySubject.extraPoints && (
+                <ul className="space-y-2">
+                  {block.items.map((it) => (
+                    <li key={it.id} className="flex items-start gap-3">
+                      <Checkbox className="mt-0.5" onCheckedChange={(v) => v && markPointDone(it)} aria-label="Mark as studied" />
+                      <span className="text-sm leading-relaxed">{it.point}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+            {extraItems.length > 0 && (
               <div className="rounded-lg border p-4 bg-card">
                 <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">Official syllabus</div>
-                <ul className="space-y-1.5">
-                  {todaySubject.extraPoints.map((p, i) => (
-                    <li key={i} className="flex gap-2 text-xs leading-relaxed text-muted-foreground">
-                      <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-gold shrink-0" />
-                      <span>{p}</span>
+                <ul className="space-y-2">
+                  {extraItems.map((it) => (
+                    <li key={it.id} className="flex items-start gap-3">
+                      <Checkbox className="mt-0.5" onCheckedChange={(v) => v && markPointDone(it)} aria-label="Mark as studied" />
+                      <span className="text-sm leading-relaxed">{it.point}</span>
                     </li>
                   ))}
                 </ul>
@@ -154,7 +195,8 @@ function Planner() {
             )}
           </CardContent>
         </Card>
-      ) : (
+        );
+      })() : (
       <Card className="shadow-sm">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between flex-wrap gap-2">
@@ -167,6 +209,7 @@ function Planner() {
                 Tap any subject to see exactly what to study from the official UPSC syllabus.
               </p>
             </div>
+            <Button size="sm" variant="outline" onClick={() => setArchiveOpen(true)}>Archive ({archive.length})</Button>
           </div>
         </CardHeader>
         <CardContent className="grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
@@ -199,6 +242,47 @@ function Planner() {
       </Card>
       )}
 
+      <Dialog open={archiveOpen} onOpenChange={setArchiveOpen}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-3xl">My study archive</DialogTitle>
+            <DialogDescription>Everything you've marked as studied — grouped by subject. Ticked items won't reappear when you pick that subject again.</DialogDescription>
+          </DialogHeader>
+          {archive.length === 0 ? (
+            <p className="text-sm text-muted-foreground italic mt-4">Nothing archived yet. Tick a syllabus point in today's subject to add it here.</p>
+          ) : (
+            <div className="space-y-4 mt-2">
+              {subjects
+                .filter((s) => archive.some((a) => a.subjectKey === s.key))
+                .map((s) => {
+                  const items = archive.filter((a) => a.subjectKey === s.key);
+                  return (
+                    <div key={s.key} className="rounded-lg border p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="font-medium">{s.name}</div>
+                        <Badge variant="outline" className="text-[10px]">{items.length} points</Badge>
+                      </div>
+                      <ul className="space-y-2">
+                        {items.map((it) => (
+                          <li key={it.id} className="flex items-start gap-3 group">
+                            <Checkbox checked className="mt-0.5" onCheckedChange={() => unmarkPoint(it.id)} aria-label="Remove from archive" />
+                            <div className="flex-1">
+                              <div className="text-sm leading-relaxed line-through opacity-70">{it.point}</div>
+                              <div className="text-[10px] text-muted-foreground mt-0.5">
+                                {it.topicName !== s.name ? `${it.topicName} · ` : ""}
+                                {new Date(it.doneAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}
+                              </div>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                })}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
 
       <Dialog open={!!activeSubject} onOpenChange={(o) => !o && setActiveSubject(null)}>
