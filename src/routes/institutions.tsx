@@ -27,6 +27,7 @@ import {
   fetchInstitutionalNews,
   type InstitutionItem,
 } from "@/lib/institutions.functions";
+import { fetchArticleDetail } from "@/lib/article.functions";
 
 export const Route = createFileRoute("/institutions")({
   head: () => ({
