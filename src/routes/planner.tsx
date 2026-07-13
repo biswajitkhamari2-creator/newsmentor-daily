@@ -209,6 +209,7 @@ function Planner() {
                 Tap any subject to see exactly what to study from the official UPSC syllabus.
               </p>
             </div>
+            <Button size="sm" variant="outline" onClick={() => setArchiveOpen(true)}>Archive ({archive.length})</Button>
           </div>
         </CardHeader>
         <CardContent className="grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
