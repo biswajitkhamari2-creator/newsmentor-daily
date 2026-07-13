@@ -5,8 +5,10 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { CalendarCheck2, Target, Flame, Plus } from "lucide-react";
-import { syllabus, todaysPlan, type Task } from "@/data/mock";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { CalendarCheck2, Target, Flame, Plus, BookOpen, ChevronRight } from "lucide-react";
+import { syllabus, todaysPlan, type Task, type SyllabusPaper, type SyllabusTopic } from "@/data/mock";
+import { syllabusDetail, paperOverview } from "@/data/syllabusDetail";
 
 export const Route = createFileRoute("/planner")({
   head: () => ({
