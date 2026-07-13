@@ -52,7 +52,7 @@ function Dashboard() {
                 <span className="absolute inline-flex h-full w-full rounded-full bg-gold opacity-75 animate-pulse-glow" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-gold" />
               </span>
-              Live · Monday · 13 July 2026
+              <span className="animate-blink">Live</span> · Monday · 13 July 2026
             </div>
             <h1 className="mt-3 font-serif text-4xl sm:text-5xl lg:text-6xl leading-[1.05]">
               Good morning, <span className="italic text-gold">Aspirant</span>.
