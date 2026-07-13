@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Upload, FileText, Newspaper, Clock, Loader2, RefreshCw, ExternalLink, AlertCircle } from "lucide-react";
 import { headlines } from "@/data/mock";
 import { fetchNews, type LiveNews } from "@/lib/api";
+import { ArticleDialog, type ArticleDialogItem } from "@/components/ArticleDialog";
 
 export const Route = createFileRoute("/current-affairs")({
   head: () => ({
