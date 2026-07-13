@@ -13,7 +13,6 @@ import { Route as PyqRouteImport } from './routes/pyq'
 import { Route as PlannerRouteImport } from './routes/planner'
 import { Route as MentorRouteImport } from './routes/mentor'
 import { Route as CurrentAffairsRouteImport } from './routes/current-affairs'
-import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AnswersRouteImport } from './routes/answers'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
@@ -38,11 +37,6 @@ const CurrentAffairsRoute = CurrentAffairsRouteImport.update({
   path: '/current-affairs',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AnswersRoute = AnswersRouteImport.update({
   id: '/answers',
   path: '/answers',
@@ -63,7 +57,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/answers': typeof AnswersRoute
-  '/auth': typeof AuthRoute
   '/current-affairs': typeof CurrentAffairsRoute
   '/mentor': typeof MentorRoute
   '/planner': typeof PlannerRoute
@@ -73,7 +66,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/answers': typeof AnswersRoute
-  '/auth': typeof AuthRoute
   '/current-affairs': typeof CurrentAffairsRoute
   '/mentor': typeof MentorRoute
   '/planner': typeof PlannerRoute
@@ -84,7 +76,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/answers': typeof AnswersRoute
-  '/auth': typeof AuthRoute
   '/current-affairs': typeof CurrentAffairsRoute
   '/mentor': typeof MentorRoute
   '/planner': typeof PlannerRoute
@@ -96,7 +87,6 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/answers'
-    | '/auth'
     | '/current-affairs'
     | '/mentor'
     | '/planner'
@@ -106,7 +96,6 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/answers'
-    | '/auth'
     | '/current-affairs'
     | '/mentor'
     | '/planner'
@@ -116,7 +105,6 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/answers'
-    | '/auth'
     | '/current-affairs'
     | '/mentor'
     | '/planner'
@@ -127,7 +115,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   AnswersRoute: typeof AnswersRoute
-  AuthRoute: typeof AuthRoute
   CurrentAffairsRoute: typeof CurrentAffairsRoute
   MentorRoute: typeof MentorRoute
   PlannerRoute: typeof PlannerRoute
@@ -164,13 +151,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CurrentAffairsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/answers': {
       id: '/answers'
       path: '/answers'
@@ -199,7 +179,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AnswersRoute: AnswersRoute,
-  AuthRoute: AuthRoute,
   CurrentAffairsRoute: CurrentAffairsRoute,
   MentorRoute: MentorRoute,
   PlannerRoute: PlannerRoute,

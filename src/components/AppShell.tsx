@@ -29,17 +29,6 @@ import {
 import { ThemeToggle } from "./ThemeToggle";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/useAuth";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { LogOut } from "lucide-react";
 
 const nav = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
