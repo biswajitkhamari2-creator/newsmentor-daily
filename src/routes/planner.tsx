@@ -241,6 +241,47 @@ function Planner() {
       </Card>
       )}
 
+      <Dialog open={archiveOpen} onOpenChange={setArchiveOpen}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-3xl">My study archive</DialogTitle>
+            <DialogDescription>Everything you've marked as studied — grouped by subject. Ticked items won't reappear when you pick that subject again.</DialogDescription>
+          </DialogHeader>
+          {archive.length === 0 ? (
+            <p className="text-sm text-muted-foreground italic mt-4">Nothing archived yet. Tick a syllabus point in today's subject to add it here.</p>
+          ) : (
+            <div className="space-y-4 mt-2">
+              {subjects
+                .filter((s) => archive.some((a) => a.subjectKey === s.key))
+                .map((s) => {
+                  const items = archive.filter((a) => a.subjectKey === s.key);
+                  return (
+                    <div key={s.key} className="rounded-lg border p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="font-medium">{s.name}</div>
+                        <Badge variant="outline" className="text-[10px]">{items.length} points</Badge>
+                      </div>
+                      <ul className="space-y-2">
+                        {items.map((it) => (
+                          <li key={it.id} className="flex items-start gap-3 group">
+                            <Checkbox checked className="mt-0.5" onCheckedChange={() => unmarkPoint(it.id)} aria-label="Remove from archive" />
+                            <div className="flex-1">
+                              <div className="text-sm leading-relaxed line-through opacity-70">{it.point}</div>
+                              <div className="text-[10px] text-muted-foreground mt-0.5">
+                                {it.topicName !== s.name ? `${it.topicName} · ` : ""}
+                                {new Date(it.doneAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}
+                              </div>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                })}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
 
       <Dialog open={!!activeSubject} onOpenChange={(o) => !o && setActiveSubject(null)}>
