@@ -4,15 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Building2,
@@ -27,7 +19,7 @@ import {
   fetchInstitutionalNews,
   type InstitutionItem,
 } from "@/lib/institutions.functions";
-import { fetchArticleDetail } from "@/lib/article.functions";
+import { ArticleDialog } from "@/components/ArticleDialog";
 
 export const Route = createFileRoute("/institutions")({
   head: () => ({
