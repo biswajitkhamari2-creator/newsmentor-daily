@@ -114,7 +114,88 @@ Study tip: <1 line on how to approach it, or say "Not required" if outside sylla
         </p>
       </header>
 
+      {/* Syllabus snapshot */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center justify-between gap-2 text-base">
+            <span className="flex items-center gap-2">
+              <Gauge className="h-4 w-4 text-gold" /> Syllabus snapshot
+            </span>
+            <span className="text-xs font-normal text-muted-foreground tabular-nums">
+              Overall <AnimatedCounter value={overall} suffix="%" />
+            </span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {syllabus.map((paper, i) => {
+            const avg = Math.round(
+              paper.topics.reduce((s, t) => s + t.progress, 0) / paper.topics.length,
+            );
+            const isOpen = expandedPaper === paper.id;
+            return (
+              <div key={paper.id} className="rounded-lg border bg-card/50">
+                <button
+                  type="button"
+                  onClick={() => setExpandedPaper(isOpen ? null : paper.id)}
+                  className="w-full text-left p-3 hover:bg-muted/40 rounded-lg transition"
+                  aria-expanded={isOpen}
+                >
+                  <div className="flex justify-between text-sm mb-1.5 items-center gap-2">
+                    <span className="font-medium flex items-center gap-1.5 min-w-0">
+                      <ChevronDown
+                        className={`h-4 w-4 text-gold shrink-0 transition-transform ${isOpen ? "" : "-rotate-90"}`}
+                      />
+                      <span className="truncate">{paper.name}</span>
+                    </span>
+                    <span className="text-muted-foreground tabular-nums text-xs shrink-0">
+                      {avg}%
+                    </span>
+                  </div>
+                  <div className="h-2 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full rounded-full gradient-gold animate-bar"
+                      style={{ width: `${avg}%`, animationDelay: `${i * 90}ms` }}
+                    />
+                  </div>
+                </button>
+
+                {isOpen && (
+                  <div className="px-3 pb-3 pt-1 grid gap-2 sm:grid-cols-2 animate-fade-in-up">
+                    {paper.topics.map((t) => (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => setQuery(t.name)}
+                        className="group text-left rounded-md border p-2.5 hover:border-gold/60 hover:shadow-sm transition"
+                      >
+                        <div className="flex items-center justify-between gap-2 text-xs">
+                          <span className="font-medium flex items-center gap-1.5 min-w-0">
+                            <BookOpen className="h-3 w-3 text-gold/70 shrink-0" />
+                            <span className="truncate">{t.name}</span>
+                          </span>
+                          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground group-hover:text-gold transition shrink-0" />
+                        </div>
+                        <div className="mt-1.5 h-1 rounded-full bg-muted overflow-hidden">
+                          <div className="h-full gradient-emerald" style={{ width: `${t.progress}%` }} />
+                        </div>
+                        <div className="mt-1 text-[10px] text-muted-foreground tabular-nums">
+                          {t.progress}%
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          <Button asChild variant="outline" size="sm" className="w-full">
+            <Link to="/planner">Open full planner <ArrowRight className="ml-1 h-3 w-3" /></Link>
+          </Button>
+        </CardContent>
+      </Card>
+
       {/* Search */}
+
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
