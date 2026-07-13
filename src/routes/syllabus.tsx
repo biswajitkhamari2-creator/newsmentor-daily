@@ -44,6 +44,12 @@ function SyllabusPage() {
   const [aiQuery, setAiQuery] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
   const [aiAnswer, setAiAnswer] = useState<string | null>(null);
+  const [expandedPaper, setExpandedPaper] = useState<string | null>(syllabus[0]?.id ?? null);
+  const overall = Math.round(
+    syllabus.flatMap((p) => p.topics).reduce((s, t) => s + t.progress, 0) /
+      syllabus.flatMap((p) => p.topics).length,
+  );
+
   const [aiVerdict, setAiVerdict] = useState<Verdict | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
 
