@@ -277,14 +277,18 @@ function Dashboard() {
         <section className="relative overflow-hidden rounded-xl border bg-card shadow-soft">
           <div className="flex items-center">
             <div className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground shrink-0">
-              <Radio className="h-3.5 w-3.5 animate-pulse-glow text-gold" />
-              <span className="text-[11px] uppercase tracking-wider font-semibold">Newswire</span>
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75 animate-ping" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-destructive" />
+              </span>
+              <Radio className="h-3.5 w-3.5 text-gold animate-blink-soft" />
+              <span className="text-[11px] uppercase tracking-wider font-semibold animate-blink-soft">Newswire · LIVE</span>
             </div>
             <div className="relative flex-1 overflow-hidden py-2.5">
               <div className="flex gap-10 whitespace-nowrap animate-marquee w-max">
                 {[...tickerItems, ...tickerItems].map((t, i) => (
                   <span key={i} className="text-sm text-foreground/80 inline-flex items-center gap-2">
-                    <span className="h-1 w-1 rounded-full bg-gold" /> {t}
+                    <span className="h-1.5 w-1.5 rounded-full bg-destructive animate-blink" /> {t}
                   </span>
                 ))}
               </div>
@@ -292,6 +296,7 @@ function Dashboard() {
               <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-card to-transparent" />
             </div>
           </div>
+
         </section>
 
         {/* Main bento grid */}
