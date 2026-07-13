@@ -37,7 +37,17 @@ function Dashboard() {
   const overall = Math.round(topics.reduce((s, t) => s + t.progress, 0) / topics.length);
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6 max-w-[1400px] mx-auto">
+    <div className="relative overflow-hidden">
+      {/* Multi-colour mesh background */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute -top-32 -left-24 h-[420px] w-[420px] rounded-full blur-3xl opacity-60 animate-float-slow" style={{ background: "radial-gradient(circle, #f9a8a8 0%, transparent 70%)" }} />
+        <div className="absolute top-20 right-0 h-[460px] w-[460px] rounded-full blur-3xl opacity-55 animate-float-slower" style={{ background: "radial-gradient(circle, #7dd3fc 0%, transparent 70%)" }} />
+        <div className="absolute top-[40%] left-[35%] h-[500px] w-[500px] rounded-full blur-3xl opacity-50 animate-float-slow" style={{ background: "radial-gradient(circle, #c9a0dc 0%, transparent 70%)" }} />
+        <div className="absolute bottom-0 right-[10%] h-[380px] w-[380px] rounded-full blur-3xl opacity-55 animate-float-slower" style={{ background: "radial-gradient(circle, #fde68a 0%, transparent 70%)" }} />
+        <div className="absolute bottom-10 left-[5%] h-[360px] w-[360px] rounded-full blur-3xl opacity-50 animate-float-slow" style={{ background: "radial-gradient(circle, #86efac 0%, transparent 70%)" }} />
+      </div>
+      <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6 max-w-[1400px] mx-auto">
+
       {/* Hero */}
       <section className="relative overflow-hidden rounded-2xl gradient-emerald animate-gradient text-primary-foreground p-6 sm:p-10 animate-fade-in-up">
         <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-gold/25 blur-3xl animate-float-slow" />
@@ -201,6 +211,7 @@ function Dashboard() {
           </CardContent>
         </Card>
       </section>
+      </div>
     </div>
   );
 }
