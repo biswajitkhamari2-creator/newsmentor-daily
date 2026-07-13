@@ -59,11 +59,17 @@ function SyllabusPage() {
     return () => { clearInterval(id); window.removeEventListener("storage", onStorage); };
   }, []);
 
-  const { progress: liveProgress, tasks: plannerTasks, streak } = usePlannerStore();
+  const { syllabus: liveSyllabus, tasks: plannerTasks } = usePlannerStore();
 
-  // Live topic progress: planner store's per-topic %, falling back to the seed value.
+  // Build a topicId -> live % map from the planner store's merged syllabus.
+  const liveProgress = useMemo(() => {
+    const m: Record<string, number> = {};
+    liveSyllabus.forEach((p) => p.topics.forEach((t) => { m[t.id] = t.progress; }));
+    return m;
+  }, [liveSyllabus]);
+
   const liveTopicPct = (t: SyllabusTopic) => {
-    const p = liveProgress?.[t.id];
+    const p = liveProgress[t.id];
     return typeof p === "number" && p > 0 ? p : t.progress;
   };
   const livePaperPct = (paperTopics: SyllabusTopic[]) =>
@@ -73,6 +79,7 @@ function SyllabusPage() {
     syllabus.flatMap((p) => p.topics).reduce((s, t) => s + liveTopicPct(t), 0) /
       syllabus.flatMap((p) => p.topics).length,
   );
+
 
   // Live signals
   const attempted = mockTests.filter((m) => m.attempted).length;
