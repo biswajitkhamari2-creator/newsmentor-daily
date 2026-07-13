@@ -5,7 +5,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { PenLine, Timer, CheckCircle2, Sparkles } from "lucide-react";
+import { PenLine, Timer, CheckCircle2, Sparkles, Loader2, AlertCircle } from "lucide-react";
+import { evaluateAnswer } from "@/lib/api";
 
 export const Route = createFileRoute("/answers")({
   head: () => ({
@@ -32,18 +33,28 @@ const prompt = {
   ],
 };
 
-const submissions = [
-  { id: 1, title: "Discuss the role of NITI Aayog in cooperative federalism", score: 11, max: 15, when: "Yesterday" },
-  { id: 2, title: "Examine the ethical issues in emergency situations", score: 13, max: 15, when: "2 days ago" },
-  { id: 3, title: "Green Hydrogen as India's clean energy vector", score: 12, max: 15, when: "3 days ago" },
-  { id: 4, title: "Bhakti movement and composite culture", score: 10, max: 15, when: "5 days ago" },
-];
 
 function AnswerWriting() {
   const [text, setText] = useState("");
   const words = text.trim().split(/\s+/).filter(Boolean).length;
   const target = 250;
-  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [history, setHistory] = useState<{ id: number; title: string; when: string; feedback: string }[]>([]);
+
+  const submit = async () => {
+    setLoading(true); setError(null); setFeedback(null);
+    try {
+      const md = await evaluateAnswer(prompt.question, text);
+      setFeedback(md);
+      setHistory((h) => [{ id: Date.now(), title: prompt.question, when: "Just now", feedback: md }, ...h].slice(0, 6));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Evaluation failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6 max-w-[1400px] mx-auto">
@@ -80,24 +91,24 @@ function AnswerWriting() {
                 </div>
                 <Progress value={Math.min(100, (words / target) * 100)} className="h-1.5" />
               </div>
-              <Button onClick={() => setSubmitted(true)} disabled={words < 20} className="bg-gold text-gold-foreground hover:bg-gold/90">
-                <CheckCircle2 className="h-4 w-4 mr-1" /> Submit for review
+              <Button onClick={submit} disabled={words < 20 || loading} className="bg-gold text-gold-foreground hover:bg-gold/90">
+                {loading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <CheckCircle2 className="h-4 w-4 mr-1" />}
+                {loading ? "Evaluating…" : "Submit for AI review"}
               </Button>
             </div>
 
-            {submitted && (
+            {error && (
+              <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive flex items-center gap-2">
+                <AlertCircle className="h-4 w-4" /> {error}
+              </div>
+            )}
+
+            {feedback && (
               <div className="rounded-lg border border-gold/40 bg-gold/5 p-4 space-y-2 animate-fade-in">
                 <div className="flex items-center gap-2 text-gold text-sm font-semibold">
-                  <Sparkles className="h-4 w-4" /> Auto-evaluation (demo)
+                  <Sparkles className="h-4 w-4" /> Mentor evaluation
                 </div>
-                <div className="grid grid-cols-3 gap-2 text-sm">
-                  <Stat k="Structure" v="8/10" />
-                  <Stat k="Content" v="7/10" />
-                  <Stat k="Clarity" v="9/10" />
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Good introduction with Art. 280. Add more on horizontal criteria and recent 15th FC recommendations. Conclusion should propose reform.
-                </p>
+                <pre className="text-sm whitespace-pre-wrap font-sans text-foreground">{feedback}</pre>
               </div>
             )}
           </CardContent>
@@ -119,30 +130,21 @@ function AnswerWriting() {
           </Card>
 
           <Card className="shadow-sm">
-            <CardHeader className="pb-3"><CardTitle className="font-serif text-xl flex items-center gap-2"><PenLine className="h-4 w-4 text-gold" /> Recent</CardTitle></CardHeader>
+            <CardHeader className="pb-3"><CardTitle className="font-serif text-xl flex items-center gap-2"><PenLine className="h-4 w-4 text-gold" /> This session</CardTitle></CardHeader>
             <CardContent className="space-y-3">
-              {submissions.map((s) => (
+              {history.length === 0 && (
+                <p className="text-xs text-muted-foreground">Your submissions this session will appear here. Nothing is stored across reloads.</p>
+              )}
+              {history.map((s) => (
                 <div key={s.id} className="border-b last:border-0 pb-3 last:pb-0">
                   <div className="text-sm line-clamp-2">{s.title}</div>
-                  <div className="flex justify-between mt-1 text-xs text-muted-foreground">
-                    <span>{s.when}</span>
-                    <span className="font-serif text-gold text-sm">{s.score}/{s.max}</span>
-                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">{s.when}</div>
                 </div>
               ))}
             </CardContent>
           </Card>
         </aside>
       </div>
-    </div>
-  );
-}
-
-function Stat({ k, v }: { k: string; v: string }) {
-  return (
-    <div className="rounded-md bg-background p-2 border">
-      <div className="text-[11px] text-muted-foreground">{k}</div>
-      <div className="font-serif text-xl text-primary">{v}</div>
     </div>
   );
 }

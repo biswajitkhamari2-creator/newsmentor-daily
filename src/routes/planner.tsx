@@ -35,6 +35,7 @@ function Planner() {
           <h1 className="font-serif text-4xl sm:text-5xl mt-1">Study Planner</h1>
           <p className="text-muted-foreground mt-2 max-w-2xl">
             Every GS paper, every topic, tracked. Today's plan on the right.
+            <span className="ml-2 text-xs uppercase tracking-wider text-gold/80">Demo data · enable Cloud to persist</span>
           </p>
         </div>
         <div className="flex gap-2">
