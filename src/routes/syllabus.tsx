@@ -1,14 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Search, Sparkles, Loader2, BookOpen, CheckCircle2, XCircle, AlertCircle, ChevronDown, ChevronRight, ArrowRight, Gauge } from "lucide-react";
-import { syllabus, type SyllabusTopic } from "@/data/mock";
+import { syllabus, mockTests, type SyllabusTopic } from "@/data/mock";
 import { syllabusDetail, paperOverview } from "@/data/syllabusDetail";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
 import { askMentor } from "@/lib/api";
+import { usePlannerStore } from "@/hooks/usePlannerStore";
+
 
 
 export const Route = createFileRoute("/syllabus")({
