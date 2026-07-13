@@ -156,6 +156,7 @@ function CurrentAffairs() {
           </Card>
         </TabsContent>
       </Tabs>
+      <ArticleDialog item={active} onClose={() => setActive(null)} />
     </div>
   );
 }
