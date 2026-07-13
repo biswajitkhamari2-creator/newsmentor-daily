@@ -48,6 +48,7 @@ function Revision() {
   const [archive, setArchive] = useState<ArchiveItem[]>([]);
   const [revised, setRevised] = useState<Record<string, string>>({}); // id -> lastRevisedAt
   const [filter, setFilter] = useState<string | null>(null);
+  const [activeTopic, setActiveTopic] = useState<SyllabusTopic | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
