@@ -5,7 +5,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { PenLine, Timer, CheckCircle2, Sparkles } from "lucide-react";
+import { PenLine, Timer, CheckCircle2, Sparkles, Loader2, AlertCircle } from "lucide-react";
+import { evaluateAnswer } from "@/lib/api";
 
 export const Route = createFileRoute("/answers")({
   head: () => ({
