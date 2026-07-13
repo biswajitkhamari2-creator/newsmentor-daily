@@ -97,24 +97,24 @@ function AnswerWriting() {
                 </div>
                 <Progress value={Math.min(100, (words / target) * 100)} className="h-1.5" />
               </div>
-              <Button onClick={() => setSubmitted(true)} disabled={words < 20} className="bg-gold text-gold-foreground hover:bg-gold/90">
-                <CheckCircle2 className="h-4 w-4 mr-1" /> Submit for review
+              <Button onClick={submit} disabled={words < 20 || loading} className="bg-gold text-gold-foreground hover:bg-gold/90">
+                {loading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <CheckCircle2 className="h-4 w-4 mr-1" />}
+                {loading ? "Evaluating…" : "Submit for AI review"}
               </Button>
             </div>
 
-            {submitted && (
+            {error && (
+              <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive flex items-center gap-2">
+                <AlertCircle className="h-4 w-4" /> {error}
+              </div>
+            )}
+
+            {feedback && (
               <div className="rounded-lg border border-gold/40 bg-gold/5 p-4 space-y-2 animate-fade-in">
                 <div className="flex items-center gap-2 text-gold text-sm font-semibold">
-                  <Sparkles className="h-4 w-4" /> Auto-evaluation (demo)
+                  <Sparkles className="h-4 w-4" /> Mentor evaluation
                 </div>
-                <div className="grid grid-cols-3 gap-2 text-sm">
-                  <Stat k="Structure" v="8/10" />
-                  <Stat k="Content" v="7/10" />
-                  <Stat k="Clarity" v="9/10" />
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Good introduction with Art. 280. Add more on horizontal criteria and recent 15th FC recommendations. Conclusion should propose reform.
-                </p>
+                <pre className="text-sm whitespace-pre-wrap font-sans text-foreground">{feedback}</pre>
               </div>
             )}
           </CardContent>
