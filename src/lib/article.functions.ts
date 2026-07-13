@@ -31,8 +31,26 @@ function pickMeta(html: string, name: string) {
   return m ? decode(m[1]) : "";
 }
 
+function sliceContainer(html: string): string {
+  // Prefer known article content containers first
+  const idCandidates = [
+    /<div[^>]+id=["']article-content["'][^>]*>([\s\S]*?)<\/div>\s*<\/(?:section|main|article|div)>/i,
+    /<div[^>]+id=["']article-content["'][^>]*>([\s\S]*?)$/i,
+    /<div[^>]+class=["'][^"']*\bck-content\b[^"']*["'][^>]*>([\s\S]*?)$/i,
+    /<div[^>]+class=["'][^"']*\b(entry-content|post-content|article-body|td-post-content)\b[^"']*["'][^>]*>([\s\S]*?)$/i,
+  ];
+  for (const re of idCandidates) {
+    const m = html.match(re);
+    if (m) return m[1] || m[2] || "";
+  }
+  const art = html.match(/<article[\s\S]*?<\/article>/i);
+  if (art) return art[0];
+  const main = html.match(/<main[\s\S]*?<\/main>/i);
+  if (main) return main[0];
+  return html;
+}
+
 function extractParagraphs(html: string): string[] {
-  // Remove scripts, styles, nav, footer, aside, noscript
   let cleaned = html
     .replace(/<script[\s\S]*?<\/script>/gi, "")
     .replace(/<style[\s\S]*?<\/style>/gi, "")
@@ -43,11 +61,8 @@ function extractParagraphs(html: string): string[] {
     .replace(/<header[\s\S]*?<\/header>/gi, "")
     .replace(/<form[\s\S]*?<\/form>/gi, "");
 
-  // Prefer <article> region if present
-  const artMatch = cleaned.match(/<article[\s\S]*?<\/article>/i);
-  if (artMatch) cleaned = artMatch[0];
+  cleaned = sliceContainer(cleaned);
 
-  // Extract <p>, <h2>, <h3>, <li> text
   const chunks: string[] = [];
   const blockRe = /<(p|h2|h3|h4|li)[^>]*>([\s\S]*?)<\/\1>/gi;
   let m: RegExpExecArray | null;
@@ -56,8 +71,7 @@ function extractParagraphs(html: string): string[] {
     const raw = m[2].replace(/<[^>]+>/g, " ");
     const text = decode(raw).replace(/\s+/g, " ").trim();
     if (!text) continue;
-    // Skip obvious boilerplate
-    if (/^(subscribe|share|comments?|read more|advertisement|related|tags?)\b/i.test(text)) continue;
+    if (/^(subscribe|share|comments?|read more|advertisement|related|tags?|follow us|choose your preferred)/i.test(text)) continue;
     if (text.length < 30 && tag === "p") continue;
     if (tag.startsWith("h")) {
       chunks.push(`## ${text}`);
@@ -66,11 +80,10 @@ function extractParagraphs(html: string): string[] {
     }
   }
 
-  // Dedupe consecutive
   const out: string[] = [];
   for (const c of chunks) {
     if (out[out.length - 1] !== c) out.push(c);
-    if (out.length > 60) break;
+    if (out.length > 80) break;
   }
   return out;
 }
