@@ -11,9 +11,11 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Collapsible, CollapsibleContent, CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronDown, Timer, CheckCircle2, Play, Search, RefreshCw, AlertCircle, Radio } from "lucide-react";
+import { ChevronDown, Timer, CheckCircle2, Play, Search, RefreshCw, AlertCircle, Radio, Sparkles, Loader2 } from "lucide-react";
 import { pyqs, mockTests } from "@/data/mock";
 import { fetchMcqs, fetchMains, type LiveMcq, type LiveMains } from "@/lib/api";
+import { generateMainsQuestions } from "@/lib/mains.functions";
+import { useServerFn } from "@tanstack/react-start";
 
 export const Route = createFileRoute("/pyq")({
   head: () => ({
