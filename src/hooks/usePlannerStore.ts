@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { syllabus as seedSyllabus, todaysPlan as seedPlan, type Task, type SyllabusPaper } from "@/data/mock";
 
-const KEY = "newsmentor.planner.v1";
+const KEY = "newsmentor.planner.v2";
 
 export type PlannerDay = {
   date: string; // YYYY-MM-DD
@@ -20,7 +20,7 @@ const todayISO = () => new Date().toISOString().slice(0, 10);
 
 const seedProgress = (): Record<string, number> => {
   const p: Record<string, number> = {};
-  seedSyllabus.forEach((paper) => paper.topics.forEach((t) => (p[t.id] = t.progress)));
+  seedSyllabus.forEach((paper) => paper.topics.forEach((t) => (p[t.id] = 0)));
   return p;
 };
 
