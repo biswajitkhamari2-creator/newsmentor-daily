@@ -117,7 +117,7 @@ export function usePlannerStore() {
   // syllabus with live progress
   const syllabusLive: SyllabusPaper[] = seedSyllabus.map((p) => ({
     ...p,
-    topics: p.topics.map((t) => ({ ...t, progress: state.progress[t.id] ?? t.progress })),
+    topics: p.topics.map((t) => ({ ...t, progress: state.progress[t.id] ?? 0 })),
   }));
 
   // weekly hours: sum of task time estimates (30m per completed task fallback) across last 7 days

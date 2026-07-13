@@ -55,10 +55,10 @@ const recentActivity = [
 ];
 
 function Dashboard() {
-  const { streak, tasks: plannerTasks, weeklyGoalHrs } = usePlannerStore();
+  const { streak, tasks: plannerTasks, weeklyGoalHrs, syllabus: liveSyllabus } = usePlannerStore();
   const done = plannerTasks.filter((t) => t.done).length;
   const totalToday = plannerTasks.length;
-  const topics = syllabus.flatMap((p) => p.topics);
+  const topics = liveSyllabus.flatMap((p) => p.topics);
   const overall = Math.round(topics.reduce((s, t) => s + t.progress, 0) / topics.length);
   const targetHours = Math.max(1, Math.round((weeklyGoalHrs / 7) * 10) / 10);
   const doneHours = Math.round(done * 0.5 * 10) / 10;
@@ -445,7 +445,7 @@ function Dashboard() {
               <h3 className="font-serif text-2xl">Syllabus snapshot</h3>
             </div>
             <div className="space-y-3">
-              {syllabus.map((paper, i) => {
+              {liveSyllabus.map((paper, i) => {
                 const avg = Math.round(paper.topics.reduce((s, t) => s + t.progress, 0) / paper.topics.length);
                 const isOpen = expandedPaper === paper.id;
                 return (
