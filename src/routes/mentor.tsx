@@ -29,24 +29,37 @@ function Mentor() {
   const [messages, setMessages] = useState<MentorMessage[]>(seedChat);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, busy]);
 
-  const send = (text: string) => {
+  const send = async (text: string) => {
     const trimmed = text.trim();
-    if (!trimmed) return;
+    if (!trimmed || busy) return;
     const userMsg: MentorMessage = { id: crypto.randomUUID(), role: "user", text: trimmed };
-    setMessages((prev) => [...prev, userMsg]);
+    const nextMessages = [...messages, userMsg];
+    setMessages(nextMessages);
     setInput("");
     setBusy(true);
-    setTimeout(() => {
-      setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "mentor", text: replies.default }]);
+    setError(null);
+    try {
+      const history: MentorMsg[] = nextMessages.map((m) => ({
+        role: m.role === "user" ? "user" : "assistant",
+        content: m.text,
+      }));
+      const reply = await askMentor({ message: trimmed, history, provider: "gemini" });
+      setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "mentor", text: reply }]);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Request failed";
+      setError(msg);
+    } finally {
       setBusy(false);
-    }, 1200);
+    }
   };
+
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-[1000px] mx-auto space-y-6">
