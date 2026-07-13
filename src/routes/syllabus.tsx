@@ -47,13 +47,39 @@ function SyllabusPage() {
   const [aiBusy, setAiBusy] = useState(false);
   const [aiAnswer, setAiAnswer] = useState<string | null>(null);
   const [expandedPaper, setExpandedPaper] = useState<string | null>(syllabus[0]?.id ?? null);
+  const [aiVerdict, setAiVerdict] = useState<Verdict | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
+
+  // Live tick — repaints the "updated Xs ago" label so it feels live.
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 15_000);
+    const onStorage = () => setTick((t) => t + 1);
+    window.addEventListener("storage", onStorage);
+    return () => { clearInterval(id); window.removeEventListener("storage", onStorage); };
+  }, []);
+
+  const { progress: liveProgress, tasks: plannerTasks, streak } = usePlannerStore();
+
+  // Live topic progress: planner store's per-topic %, falling back to the seed value.
+  const liveTopicPct = (t: SyllabusTopic) => {
+    const p = liveProgress?.[t.id];
+    return typeof p === "number" && p > 0 ? p : t.progress;
+  };
+  const livePaperPct = (paperTopics: SyllabusTopic[]) =>
+    Math.round(paperTopics.reduce((s, t) => s + liveTopicPct(t), 0) / paperTopics.length);
+
   const overall = Math.round(
-    syllabus.flatMap((p) => p.topics).reduce((s, t) => s + t.progress, 0) /
+    syllabus.flatMap((p) => p.topics).reduce((s, t) => s + liveTopicPct(t), 0) /
       syllabus.flatMap((p) => p.topics).length,
   );
 
-  const [aiVerdict, setAiVerdict] = useState<Verdict | null>(null);
-  const [aiError, setAiError] = useState<string | null>(null);
+  // Live signals
+  const attempted = mockTests.filter((m) => m.attempted).length;
+  const doneToday = plannerTasks.filter((t) => t.done).length;
+  const lastSync = new Date();
+
+
 
   const matches = useMemo<Match[]>(() => {
     const q = query.trim().toLowerCase();
