@@ -133,6 +133,7 @@ function Revision() {
         </Card>
       )}
 
+      {archive.length > 0 && (
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between flex-wrap gap-2">
@@ -161,6 +162,7 @@ function Revision() {
             ))}
         </CardContent>
       </Card>
+      )}
 
       <Card>
         <CardHeader className="pb-3">
