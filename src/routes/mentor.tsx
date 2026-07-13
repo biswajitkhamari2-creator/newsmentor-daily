@@ -3,14 +3,15 @@ import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles, Send, Loader2 } from "lucide-react";
+import { Sparkles, Send, Loader2, AlertCircle } from "lucide-react";
 import { seedChat, type MentorMessage } from "@/data/mock";
+import { askMentor, type MentorMsg } from "@/lib/api";
 
 export const Route = createFileRoute("/mentor")({
   head: () => ({
     meta: [
       { title: "AI Mentor — NewsMentor Daily" },
-      { name: "description", content: "Chat with a 24×7 UPSC mentor: syllabus doubts, PYQ analysis, current affairs and answer-writing feedback." },
+      { name: "description", content: "Chat with a 24×7 UPSC mentor powered by Gemini: syllabus doubts, PYQ analysis, current affairs and answer-writing feedback." },
     ],
   }),
   component: Mentor,
@@ -23,33 +24,42 @@ const suggestions = [
   "Frame an intro for the UCC question",
 ];
 
-const replies: Record<string, string> = {
-  default:
-    "Here's a structured take:\n\n• **Context** — Anchor the topic in the current syllabus box.\n• **Key facts** — 3–4 numbers or landmark cases.\n• **Analytical layer** — link to a theme (federalism, ethics, sustainability).\n• **Conclusion** — a forward-looking line that quotes a report or thinker.\n\nWant me to expand any of these into a 250-word answer?",
-};
 
 function Mentor() {
   const [messages, setMessages] = useState<MentorMessage[]>(seedChat);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, busy]);
 
-  const send = (text: string) => {
+  const send = async (text: string) => {
     const trimmed = text.trim();
-    if (!trimmed) return;
+    if (!trimmed || busy) return;
     const userMsg: MentorMessage = { id: crypto.randomUUID(), role: "user", text: trimmed };
-    setMessages((prev) => [...prev, userMsg]);
+    const nextMessages = [...messages, userMsg];
+    setMessages(nextMessages);
     setInput("");
     setBusy(true);
-    setTimeout(() => {
-      setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "mentor", text: replies.default }]);
+    setError(null);
+    try {
+      const history: MentorMsg[] = nextMessages.map((m) => ({
+        role: m.role === "user" ? "user" : "assistant",
+        content: m.text,
+      }));
+      const reply = await askMentor({ message: trimmed, history, provider: "gemini" });
+      setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "mentor", text: reply }]);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Request failed";
+      setError(msg);
+    } finally {
       setBusy(false);
-    }, 1200);
+    }
   };
+
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-[1000px] mx-auto space-y-6">
@@ -95,7 +105,14 @@ function Mentor() {
           )}
         </div>
 
+        {error && (
+          <div className="border-t px-4 py-2 text-xs text-destructive flex items-center gap-2 bg-destructive/10">
+            <AlertCircle className="h-3.5 w-3.5" /> {error}
+          </div>
+        )}
+
         <div className="border-t p-4 space-y-3">
+
           <div className="flex flex-wrap gap-2">
             {suggestions.map((s) => (
               <button
