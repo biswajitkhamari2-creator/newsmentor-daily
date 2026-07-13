@@ -34,6 +34,7 @@ import { Badge } from "@/components/ui/badge";
 const nav = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Current Affairs", url: "/current-affairs", icon: Newspaper },
+  { title: "Institutional Engine", url: "/institutions", icon: Building2 },
   { title: "Study Planner", url: "/planner", icon: CalendarCheck2 },
   { title: "PYQ & Tests", url: "/pyq", icon: FileQuestion },
   { title: "Answer Writing", url: "/answers", icon: PenLine },
