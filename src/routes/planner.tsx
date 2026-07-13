@@ -64,6 +64,117 @@ function Planner() {
         </div>
       </header>
 
+      <Card className="shadow-sm">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div>
+              <CardTitle className="font-serif text-xl sm:text-2xl flex items-center gap-2">
+                <GraduationCap className="h-5 w-5 text-gold" />
+                Subjects
+              </CardTitle>
+              <p className="text-xs text-muted-foreground mt-1">
+                Tap any subject to see exactly what to study from the official UPSC syllabus.
+              </p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+          {subjects.map((s) => {
+            const avg = (() => {
+              if (!s.topicIds?.length) return null;
+              const topics = syllabus.flatMap((p) => p.topics).filter((t) => s.topicIds!.includes(t.id));
+              if (!topics.length) return null;
+              return Math.round(topics.reduce((a, t) => a + t.progress, 0) / topics.length);
+            })();
+            return (
+              <button
+                key={s.key}
+                onClick={() => setActiveSubject(s)}
+                className="text-left rounded-lg border p-3 hover:border-gold hover:shadow-sm hover:bg-gold/5 transition group"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium truncate">{s.name}</div>
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">{s.paper}</div>
+                  </div>
+                  {avg !== null && (
+                    <Badge variant="outline" className="border-gold/40 text-gold text-[10px] shrink-0">{avg}%</Badge>
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </CardContent>
+      </Card>
+
+      <Dialog open={!!activeSubject} onOpenChange={(o) => !o && setActiveSubject(null)}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          {activeSubject && (
+            <>
+              <DialogHeader>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge variant="outline" className="border-gold/50 text-gold">{activeSubject.paper}</Badge>
+                </div>
+                <DialogTitle className="font-serif text-3xl mt-2">{activeSubject.name}</DialogTitle>
+                <DialogDescription>What to study — matched from the official UPSC CSE syllabus.</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-5 mt-2">
+                {activeSubject.topicIds?.map((tid) => {
+                  const detail = syllabusDetail[tid];
+                  const topicMeta = syllabus.flatMap((p) => p.topics).find((t) => t.id === tid);
+                  if (!detail || !topicMeta) return null;
+                  return (
+                    <div key={tid} className="rounded-lg border p-4">
+                      <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
+                        <div className="flex items-center gap-2">
+                          <BookOpen className="h-4 w-4 text-gold" />
+                          <span className="font-medium">{topicMeta.name}</span>
+                        </div>
+                        <Badge variant="outline" className="text-[10px]">{topicMeta.progress}% done</Badge>
+                      </div>
+                      <ul className="space-y-1.5 mt-2">
+                        {detail.points.map((p, i) => (
+                          <li key={i} className="flex gap-2 text-sm leading-relaxed text-muted-foreground">
+                            <span className="mt-2 h-1.5 w-1.5 rounded-full bg-gold shrink-0" />
+                            <span>{p}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                })}
+                {activeSubject.extraPoints && (
+                  <div className="rounded-lg border p-4">
+                    <ul className="space-y-1.5">
+                      {activeSubject.extraPoints.map((p, i) => (
+                        <li key={i} className="flex gap-2 text-sm leading-relaxed text-muted-foreground">
+                          <span className="mt-2 h-1.5 w-1.5 rounded-full bg-gold shrink-0" />
+                          <span>{p}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+              <DialogFooter className="mt-4">
+                <Button
+                  onClick={() => {
+                    addTask({
+                      title: `${activeSubject.name} — study block`,
+                      time: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: false }),
+                      module: activeSubject.paper,
+                    });
+                    setActiveSubject(null);
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-1" /> Add to today's plan
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
       <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
         <div className="space-y-4">
           {syllabus.map((paper) => {
