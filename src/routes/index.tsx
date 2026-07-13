@@ -72,6 +72,9 @@ function Dashboard() {
     ? liveNews.map((n) => n.title)
     : ticker;
 
+  const [expandedPaper, setExpandedPaper] = useState<string | null>(syllabus[0]?.id ?? null);
+  const [openTopic, setOpenTopic] = useState<{ topic: SyllabusTopic; paper: SyllabusPaper } | null>(null);
+
   return (
     <div className="relative">
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 gradient-mesh-subtle" />
