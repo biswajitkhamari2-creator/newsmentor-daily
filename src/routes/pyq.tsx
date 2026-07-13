@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,8 +11,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Collapsible, CollapsibleContent, CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronDown, Timer, CheckCircle2, Play, Search } from "lucide-react";
+import { ChevronDown, Timer, CheckCircle2, Play, Search, RefreshCw, AlertCircle, Radio } from "lucide-react";
 import { pyqs, mockTests } from "@/data/mock";
+import { fetchMcqs, fetchMains, type LiveMcq, type LiveMains } from "@/lib/api";
 
 export const Route = createFileRoute("/pyq")({
   head: () => ({
