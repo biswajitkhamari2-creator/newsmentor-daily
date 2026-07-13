@@ -52,12 +52,17 @@ function PyqPage() {
         </p>
       </header>
 
-      <Tabs defaultValue="live">
+      <Tabs defaultValue="generator">
         <TabsList>
+          <TabsTrigger value="generator"><Sparkles className="h-3.5 w-3.5 mr-1" /> Mains Generator</TabsTrigger>
           <TabsTrigger value="live"><Radio className="h-3.5 w-3.5 mr-1" /> Live from backend</TabsTrigger>
           <TabsTrigger value="pyq">PYQ Bank</TabsTrigger>
           <TabsTrigger value="mock">Mock Tests</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="generator" className="mt-4">
+          <MainsGenerator />
+        </TabsContent>
 
         <TabsContent value="live" className="mt-4">
           <LivePractice />
