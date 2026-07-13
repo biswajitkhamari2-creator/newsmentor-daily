@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Upload, FileText, Newspaper, Clock, Loader2, RefreshCw, ExternalLink, AlertCircle } from "lucide-react";
 import { headlines } from "@/data/mock";
 import { fetchNews, type LiveNews } from "@/lib/api";
+import { ArticleDialog, type ArticleDialogItem } from "@/components/ArticleDialog";
 
 export const Route = createFileRoute("/current-affairs")({
   head: () => ({
@@ -26,6 +27,7 @@ function CurrentAffairs() {
   const [news, setNews] = useState<LiveNews[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [active, setActive] = useState<ArticleDialogItem | null>(null);
 
   const load = async (refresh = false) => {
     setLoading(true);
@@ -102,23 +104,27 @@ function CurrentAffairs() {
           {news && (
             <div className="grid gap-4 lg:grid-cols-2">
               {filteredLive.slice(0, 60).map((n, idx) => (
-                <Card key={idx} className="hover-lift shadow-sm">
-                  <CardContent className="p-5">
-                    <div className="flex flex-wrap items-center gap-2 text-xs">
-                      <Badge className="bg-primary text-primary-foreground">Live</Badge>
-                      <Badge variant="outline">{n.source}</Badge>
-                    </div>
-                    <h3 className="font-serif text-xl mt-3 leading-snug">{n.title}</h3>
-                    {n.summary && n.summary !== n.title && (
-                      <p className="text-sm text-muted-foreground mt-2 line-clamp-3">{n.summary}</p>
-                    )}
-                    {n.link && (
-                      <a href={n.link} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1 text-xs text-gold hover:underline">
-                        Read source <ExternalLink className="h-3 w-3" />
-                      </a>
-                    )}
-                  </CardContent>
-                </Card>
+                <button
+                  key={idx}
+                  onClick={() => setActive({ title: n.title, link: n.link, source: n.source })}
+                  className="text-left"
+                >
+                  <Card className="hover-lift shadow-sm h-full transition hover:border-gold/50">
+                    <CardContent className="p-5">
+                      <div className="flex flex-wrap items-center gap-2 text-xs">
+                        <Badge className="bg-primary text-primary-foreground">Live</Badge>
+                        <Badge variant="outline">{n.source}</Badge>
+                      </div>
+                      <h3 className="font-serif text-xl mt-3 leading-snug">{n.title}</h3>
+                      {n.summary && n.summary !== n.title && (
+                        <p className="text-sm text-muted-foreground mt-2 line-clamp-3">{n.summary}</p>
+                      )}
+                      <div className="mt-3 inline-flex items-center gap-1 text-xs text-gold">
+                        Read here <ExternalLink className="h-3 w-3" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </button>
               ))}
               {filteredLive.length === 0 && (
                 <div className="col-span-full text-center py-12 text-muted-foreground">
@@ -128,6 +134,7 @@ function CurrentAffairs() {
             </div>
           )}
         </TabsContent>
+
 
 
         <TabsContent value="upload" className="mt-4">
@@ -149,6 +156,7 @@ function CurrentAffairs() {
           </Card>
         </TabsContent>
       </Tabs>
+      <ArticleDialog item={active} onClose={() => setActive(null)} />
     </div>
   );
 }

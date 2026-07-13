@@ -4,15 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Building2,
@@ -27,6 +19,7 @@ import {
   fetchInstitutionalNews,
   type InstitutionItem,
 } from "@/lib/institutions.functions";
+import { ArticleDialog } from "@/components/ArticleDialog";
 
 export const Route = createFileRoute("/institutions")({
   head: () => ({
@@ -205,68 +198,11 @@ function InstitutionsPage() {
         </div>
       )}
 
-      <Dialog open={!!active} onOpenChange={(o) => !o && setActive(null)}>
-        <DialogContent className="max-w-2xl">
-          {active && (
-            <>
-              <DialogHeader>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="border-gold/50 text-gold">
-                    {active.source}
-                  </Badge>
-                  <span className="text-xs text-muted-foreground">
-                    {timeAgo(active.pubDate)}
-                  </span>
-                </div>
-                <DialogTitle className="font-serif text-2xl leading-snug mt-2">
-                  {active.title}
-                </DialogTitle>
-                <DialogDescription className="sr-only">
-                  Crisp notes and summary
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="space-y-4">
-                {active.bullets.length > 0 && (
-                  <div>
-                    <div className="text-xs uppercase tracking-widest text-gold mb-2 flex items-center gap-1">
-                      <Sparkles className="h-3 w-3" /> Crisp notes
-                    </div>
-                    <ul className="space-y-2 text-sm">
-                      {active.bullets.map((b, i) => (
-                        <li key={i} className="flex gap-2">
-                          <span className="text-gold shrink-0">▸</span>
-                          <span>{b}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                <div className="border-t pt-4">
-                  <div className="text-xs uppercase tracking-widest text-muted-foreground mb-2">
-                    Detail
-                  </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
-                    {active.summary}
-                  </p>
-                </div>
-
-                <div className="flex justify-end">
-                  <a
-                    href={active.link}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-2 rounded-md bg-gold text-gold-foreground px-4 py-2 text-sm font-medium hover:opacity-90"
-                  >
-                    Read full article <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
-                </div>
-              </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+      <ArticleDialog
+        item={active}
+        onClose={() => setActive(null)}
+      />
     </div>
   );
 }
+
