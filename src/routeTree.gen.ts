@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RevisionRouteImport } from './routes/revision'
 import { Route as PyqRouteImport } from './routes/pyq'
 import { Route as PlannerRouteImport } from './routes/planner'
 import { Route as MentorRouteImport } from './routes/mentor'
@@ -18,6 +19,11 @@ import { Route as AnswersRouteImport } from './routes/answers'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
+const RevisionRoute = RevisionRouteImport.update({
+  id: '/revision',
+  path: '/revision',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PyqRoute = PyqRouteImport.update({
   id: '/pyq',
   path: '/pyq',
@@ -68,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/mentor': typeof MentorRoute
   '/planner': typeof PlannerRoute
   '/pyq': typeof PyqRoute
+  '/revision': typeof RevisionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByTo {
   '/mentor': typeof MentorRoute
   '/planner': typeof PlannerRoute
   '/pyq': typeof PyqRoute
+  '/revision': typeof RevisionRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -89,6 +97,7 @@ export interface FileRoutesById {
   '/mentor': typeof MentorRoute
   '/planner': typeof PlannerRoute
   '/pyq': typeof PyqRoute
+  '/revision': typeof RevisionRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,6 +110,7 @@ export interface FileRouteTypes {
     | '/mentor'
     | '/planner'
     | '/pyq'
+    | '/revision'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -111,6 +121,7 @@ export interface FileRouteTypes {
     | '/mentor'
     | '/planner'
     | '/pyq'
+    | '/revision'
   id:
     | '__root__'
     | '/'
@@ -121,6 +132,7 @@ export interface FileRouteTypes {
     | '/mentor'
     | '/planner'
     | '/pyq'
+    | '/revision'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -132,10 +144,18 @@ export interface RootRouteChildren {
   MentorRoute: typeof MentorRoute
   PlannerRoute: typeof PlannerRoute
   PyqRoute: typeof PyqRoute
+  RevisionRoute: typeof RevisionRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/revision': {
+      id: '/revision'
+      path: '/revision'
+      fullPath: '/revision'
+      preLoaderRoute: typeof RevisionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pyq': {
       id: '/pyq'
       path: '/pyq'
@@ -204,6 +224,7 @@ const rootRouteChildren: RootRouteChildren = {
   MentorRoute: MentorRoute,
   PlannerRoute: PlannerRoute,
   PyqRoute: PyqRoute,
+  RevisionRoute: RevisionRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
