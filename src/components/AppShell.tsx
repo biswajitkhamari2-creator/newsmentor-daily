@@ -39,6 +39,7 @@ const nav = [
   { title: "Institutional Engine", url: "/institutions", icon: Building2 },
   { title: "Study Planner", url: "/planner", icon: CalendarCheck2 },
   { title: "Revision", url: "/revision", icon: RotateCcw },
+  { title: "Syllabus", url: "/syllabus", icon: BookOpen },
   { title: "PYQ & Tests", url: "/pyq", icon: FileQuestion },
   { title: "Answer Writing", url: "/answers", icon: PenLine },
   { title: "AI Mentor", url: "/mentor", icon: Sparkles },
