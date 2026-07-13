@@ -1,72 +1,69 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { BookOpen, Target, Clock, Sparkles } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { createFileRoute } from "@tanstack/react-router";
+import { Card, CardContent } from "@/components/ui/card";
+import { BookOpen, Compass, Feather, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/about")({
-  component: AboutPage,
   head: () => ({
     meta: [
       { title: "About — NewsMentor Daily" },
-      {
-        name: "description",
-        content:
-          "NewsMentor Daily is built by aspirants, for aspirants — to save 2 hours of newspaper reading every single day.",
-      },
-      { property: "og:title", content: "About — NewsMentor Daily" },
-      { property: "og:url", content: "/about" },
+      { name: "description", content: "NewsMentor Daily is a focused, respectful workspace for UPSC aspirants — daily current affairs, syllabus tracking, PYQs, mock tests and a mentor." },
     ],
-    links: [{ rel: "canonical", href: "/about" }],
   }),
+  component: About,
 });
 
-const pillars = [
-  { icon: Target, title: "Syllabus first", body: "Every summary maps back to a specific GS paper — no fluff, no filler." },
-  { icon: Clock, title: "Two hours back", body: "The newspaper drill used to eat your morning. Now it takes 10 minutes." },
-  { icon: Sparkles, title: "Exam-tuned", body: "Fact patterns, editorial takes, and PYQ links — the same lens toppers use." },
-];
-
-function AboutPage() {
+function About() {
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10 sm:py-16">
-      <div className="text-center">
-        <div className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-3 py-1 text-xs font-medium">
-          <BookOpen className="h-3.5 w-3.5 text-accent" />
-          Our story
-        </div>
-        <h1 className="font-serif text-4xl font-bold sm:text-5xl">
-          Built by aspirants, for aspirants.
+    <div className="px-4 sm:px-6 lg:px-8 py-10 max-w-4xl mx-auto space-y-10">
+      <header>
+        <div className="text-xs uppercase tracking-[0.3em] text-gold">Our Story</div>
+        <h1 className="font-serif text-5xl sm:text-6xl mt-2 leading-tight">
+          Built for the <span className="italic text-gold">quiet, disciplined</span> hours of UPSC prep.
         </h1>
-        <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
-          Every UPSC aspirant knows the feeling — three newspapers open,
-          highlighter running dry, and it's already 9 AM. NewsMentor Daily
-          exists to give you that time back without giving up an inch of
-          syllabus coverage.
+        <p className="text-lg text-muted-foreground mt-6 leading-relaxed">
+          NewsMentor Daily is the workspace we wished we had while preparing —
+          the newspaper, syllabus, PYQ bank, mock tests and a patient mentor,
+          arranged so nothing gets in the way of the work itself.
         </p>
+      </header>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Pillar icon={BookOpen} title="Every syllabus item, tracked"
+          text="GS I–IV and Prelims topics with honest progress bars — no gamified fluff." />
+        <Pillar icon={Compass} title="Newspaper without noise"
+          text="The Hindu, Indian Express and PIB summarised into GS-mapped notes each morning." />
+        <Pillar icon={Feather} title="Answer writing that counts"
+          text="Daily prompts with a timer, word tracker, and structured feedback loops." />
+        <Pillar icon={Sparkles} title="A mentor at 11 pm"
+          text="Ask anything about a PYQ, editorial, or 3-mark fact — without waiting for coaching hours." />
       </div>
 
-      <div className="mt-12 grid gap-4 md:grid-cols-3">
-        {pillars.map((p) => (
-          <Card key={p.title} className="hover-lift p-5">
-            <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <p.icon className="h-4 w-4" />
-            </div>
-            <h3 className="font-serif text-lg font-bold">{p.title}</h3>
-            <p className="mt-1 text-sm text-muted-foreground">{p.body}</p>
-          </Card>
-        ))}
-      </div>
-
-      <Card className="mt-12 p-8 text-center">
-        <h2 className="font-serif text-2xl font-bold">Ready to try it?</h2>
-        <p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground">
-          Drop today's newspaper — you'll have a GS-mapped summary in under a
-          minute.
-        </p>
-        <Button asChild size="lg" className="mt-6 rounded-full">
-          <Link to="/upload">Upload a newspaper</Link>
-        </Button>
+      <Card className="bg-gradient-to-br from-primary/5 to-gold/10 border-gold/30">
+        <CardContent className="p-8">
+          <blockquote className="font-serif text-2xl italic leading-snug">
+            "Discipline is the bridge between goals and accomplishment."
+          </blockquote>
+          <div className="text-sm text-muted-foreground mt-3">— Jim Rohn · shown on every desk we've seen crack this exam.</div>
+        </CardContent>
       </Card>
+
+      <footer className="text-sm text-muted-foreground">
+        Made with care for UPSC aspirants. Frontend prototype — mock data only.
+      </footer>
     </div>
+  );
+}
+
+function Pillar({ icon: Icon, title, text }: { icon: any; title: string; text: string }) {
+  return (
+    <Card className="shadow-sm hover-lift">
+      <CardContent className="p-5">
+        <div className="grid h-10 w-10 place-items-center rounded-lg bg-primary/10 text-primary">
+          <Icon className="h-5 w-5" />
+        </div>
+        <h3 className="font-serif text-xl mt-3">{title}</h3>
+        <p className="text-sm text-muted-foreground mt-1">{text}</p>
+      </CardContent>
+    </Card>
   );
 }

@@ -1,41 +1,28 @@
-import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 
 export function ThemeToggle() {
   const [dark, setDark] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem("nm-theme");
-    const initial =
-      stored === "dark" ||
-      (!stored && window.matchMedia("(prefers-color-scheme: dark)").matches);
-    setDark(initial);
-    document.documentElement.classList.toggle("dark", initial);
-    setMounted(true);
+    const stored = localStorage.getItem("theme");
+    const prefers = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const isDark = stored ? stored === "dark" : prefers;
+    setDark(isDark);
+    document.documentElement.classList.toggle("dark", isDark);
   }, []);
 
   const toggle = () => {
     const next = !dark;
     setDark(next);
     document.documentElement.classList.toggle("dark", next);
-    localStorage.setItem("nm-theme", next ? "dark" : "light");
+    localStorage.setItem("theme", next ? "dark" : "light");
   };
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={toggle}
-      aria-label="Toggle theme"
-      className="rounded-full"
-    >
-      {mounted && dark ? (
-        <Sun className="h-4 w-4" />
-      ) : (
-        <Moon className="h-4 w-4" />
-      )}
+    <Button variant="ghost" size="icon" onClick={toggle} aria-label="Toggle theme">
+      {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
     </Button>
   );
 }

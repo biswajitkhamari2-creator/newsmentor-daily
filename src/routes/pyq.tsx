@@ -1,172 +1,143 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { Search, BookMarked, ChevronDown, ChevronUp, SearchX } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { pyqs, type Pyq } from "@/data/pyqs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  Collapsible, CollapsibleContent, CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { ChevronDown, Timer, CheckCircle2, Play, Search } from "lucide-react";
+import { pyqs, mockTests } from "@/data/mock";
 
 export const Route = createFileRoute("/pyq")({
-  component: PyqPage,
   head: () => ({
     meta: [
-      { title: "PYQ Bank — UPSC Previous Year Questions | NewsMentor Daily" },
-      {
-        name: "description",
-        content:
-          "Searchable bank of UPSC Prelims and Mains previous year questions from 2020–2025, tagged by subject.",
-      },
-      { property: "og:title", content: "UPSC PYQ Bank — NewsMentor Daily" },
-      { property: "og:url", content: "/pyq" },
+      { title: "PYQ Bank & Mock Tests — NewsMentor Daily" },
+      { name: "description", content: "Searchable UPSC previous year questions (2020–2024) with model answers, plus timed prelims & mains mock tests." },
     ],
-    links: [{ rel: "canonical", href: "/pyq" }],
   }),
+  component: PyqPage,
 });
 
-const subjects: (Pyq["subject"] | "All")[] = [
-  "All",
-  "Polity",
-  "History",
-  "Geography",
-  "Economy",
-  "Environment",
-  "S&T",
-  "Current Affairs",
-];
-const years = ["All", "2025", "2024", "2023", "2022", "2021", "2020"] as const;
+const years = ["All", "2024", "2023", "2022", "2021", "2020"];
+const papers = ["All", "Prelims", "Mains GS-I", "Mains GS-II", "Mains GS-III", "Mains GS-IV", "Essay"];
 
 function PyqPage() {
-  const [year, setYear] = useState<string>("All");
-  const [subject, setSubject] = useState<string>("All");
-  const [type, setType] = useState<"All" | "Prelims" | "Mains">("All");
   const [q, setQ] = useState("");
-  const [open, setOpen] = useState<Record<string, boolean>>({});
+  const [year, setYear] = useState("All");
+  const [paper, setPaper] = useState("All");
 
-  const filtered = useMemo(() => {
-    return pyqs.filter((p) => {
-      if (year !== "All" && String(p.year) !== year) return false;
-      if (subject !== "All" && p.subject !== subject) return false;
-      if (type !== "All" && p.type !== type) return false;
-      if (q.trim() && !p.question.toLowerCase().includes(q.toLowerCase())) return false;
-      return true;
-    });
-  }, [year, subject, type, q]);
+  const filtered = pyqs.filter(
+    (p) =>
+      (year === "All" || String(p.year) === year) &&
+      (paper === "All" || p.paper === paper) &&
+      (q === "" || p.question.toLowerCase().includes(q.toLowerCase())),
+  );
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10 sm:py-14">
-      <div className="mb-8 flex items-center gap-3">
-        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground">
-          <BookMarked className="h-5 w-5" />
-        </div>
-        <div className="min-w-0">
-          <h1 className="font-serif text-3xl font-bold sm:text-4xl">PYQ Bank</h1>
-          <p className="text-sm text-muted-foreground">
-            UPSC Prelims & Mains — 2020 to 2025, tagged by subject.
-          </p>
-        </div>
-      </div>
+    <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6 max-w-[1400px] mx-auto">
+      <header>
+        <div className="text-xs uppercase tracking-[0.3em] text-gold">Practice Vault</div>
+        <h1 className="font-serif text-4xl sm:text-5xl mt-1">PYQ Bank & Mock Tests</h1>
+        <p className="text-muted-foreground mt-2 max-w-2xl">
+          Every previous-year question with model answers. Full-length and sectional mocks with instant scoring.
+        </p>
+      </header>
 
-      {/* Filter bar */}
-      <Card className="mb-6 p-4">
-        <div className="grid gap-3 md:grid-cols-[1fr_160px_180px_auto]">
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Search questions by keyword…"
-              className="pl-9"
-            />
+      <Tabs defaultValue="pyq">
+        <TabsList>
+          <TabsTrigger value="pyq">PYQ Bank</TabsTrigger>
+          <TabsTrigger value="mock">Mock Tests</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="pyq" className="mt-4 space-y-4">
+          <Card className="shadow-sm">
+            <CardContent className="p-4 flex flex-wrap gap-3 items-center">
+              <div className="relative flex-1 min-w-[240px]">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input placeholder="Search question…" value={q} onChange={(e) => setQ(e.target.value)} className="pl-9" />
+              </div>
+              <Select value={year} onValueChange={setYear}>
+                <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+                <SelectContent>{years.map((y) => <SelectItem key={y} value={y}>{y}</SelectItem>)}</SelectContent>
+              </Select>
+              <Select value={paper} onValueChange={setPaper}>
+                <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+                <SelectContent>{papers.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+              </Select>
+              <div className="text-sm text-muted-foreground">{filtered.length} results</div>
+            </CardContent>
+          </Card>
+
+          <div className="space-y-3">
+            {filtered.map((p) => (
+              <Collapsible key={p.id}>
+                <Card className="shadow-sm">
+                  <CardContent className="p-5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge className="bg-primary text-primary-foreground">{p.paper}</Badge>
+                      <Badge variant="outline">{p.year}</Badge>
+                      <Badge variant="outline" className="border-gold/50 text-gold">{p.subject}</Badge>
+                      {p.marks && <Badge variant="outline">{p.marks} marks</Badge>}
+                    </div>
+                    <p className="mt-3 font-serif text-lg leading-snug">{p.question}</p>
+                    <CollapsibleTrigger className="group mt-3 text-sm text-primary hover:text-gold inline-flex items-center gap-1">
+                      Reveal hint & model answer
+                      <ChevronDown className="h-4 w-4 transition group-data-[state=open]:rotate-180" />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-3 space-y-3">
+                      <div className="rounded-md border border-gold/40 bg-gold/5 p-3 text-sm">
+                        <span className="font-semibold text-gold">Hint · </span>{p.hint}
+                      </div>
+                      <div className="rounded-md bg-muted/40 p-3 text-sm whitespace-pre-wrap">
+                        <div className="font-semibold mb-1">Model answer</div>
+                        {p.answer}
+                      </div>
+                    </CollapsibleContent>
+                  </CardContent>
+                </Card>
+              </Collapsible>
+            ))}
+            {filtered.length === 0 && <div className="text-center py-16 text-muted-foreground">No matches. Try broadening your filters.</div>}
           </div>
-          <Select value={year} onValueChange={setYear}>
-            <SelectTrigger><SelectValue placeholder="Year" /></SelectTrigger>
-            <SelectContent>
-              {years.map((y) => (<SelectItem key={y} value={y}>{y === "All" ? "All years" : y}</SelectItem>))}
-            </SelectContent>
-          </Select>
-          <Select value={subject} onValueChange={setSubject}>
-            <SelectTrigger><SelectValue placeholder="Subject" /></SelectTrigger>
-            <SelectContent>
-              {subjects.map((s) => (<SelectItem key={s} value={s}>{s === "All" ? "All subjects" : s}</SelectItem>))}
-            </SelectContent>
-          </Select>
-          <Tabs value={type} onValueChange={(v) => setType(v as typeof type)}>
-            <TabsList>
-              <TabsTrigger value="All">All</TabsTrigger>
-              <TabsTrigger value="Prelims">Prelims</TabsTrigger>
-              <TabsTrigger value="Mains">Mains</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
-      </Card>
+        </TabsContent>
 
-      <p className="mb-4 text-xs uppercase tracking-widest text-muted-foreground">
-        {filtered.length} question{filtered.length === 1 ? "" : "s"}
-      </p>
-
-      {filtered.length === 0 ? (
-        <Card className="p-12 text-center">
-          <SearchX className="mx-auto h-10 w-10 text-muted-foreground" />
-          <p className="mt-4 font-serif text-xl font-bold">No matches</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Try clearing filters or searching a different keyword.
-          </p>
-          <Button
-            variant="outline"
-            className="mt-4"
-            onClick={() => { setYear("All"); setSubject("All"); setType("All"); setQ(""); }}
-          >
-            Clear filters
-          </Button>
-        </Card>
-      ) : (
-        <div className="space-y-3">
-          {filtered.map((p) => {
-            const isOpen = open[p.id];
-            return (
-              <Card key={p.id} className="hover-lift p-5">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="outline" className="rounded-full border-primary/30 bg-primary/10 text-primary">
-                    {p.year}
-                  </Badge>
-                  <Badge variant="outline" className="rounded-full border-accent/50 bg-accent/20 text-accent-foreground">
-                    {p.subject}
-                  </Badge>
-                  <Badge variant="secondary" className="rounded-full">
-                    {p.type}
-                  </Badge>
-                </div>
-                <p className="mt-3 text-sm leading-relaxed sm:text-base">{p.question}</p>
-                {isOpen && (
-                  <div className="mt-3 rounded-lg border border-accent/30 bg-accent/5 p-4 text-sm leading-relaxed animate-fade-in">
-                    <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-accent-foreground/80">
-                      Hint / Answer
-                    </p>
-                    {p.answer}
+        <TabsContent value="mock" className="mt-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {mockTests.map((t) => (
+              <Card key={t.id} className="hover-lift shadow-sm">
+                <CardHeader className="pb-2">
+                  <div className="flex justify-between items-start">
+                    <Badge variant="outline" className="text-xs">{t.type}</Badge>
+                    {t.attempted && <Badge className="bg-gold text-gold-foreground text-xs"><CheckCircle2 className="h-3 w-3 mr-1" />Done</Badge>}
                   </div>
-                )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="mt-3 h-8 px-2 text-primary hover:text-primary"
-                  onClick={() => setOpen((s) => ({ ...s, [p.id]: !s[p.id] }))}
-                >
-                  {isOpen ? (<>Hide answer <ChevronUp className="h-4 w-4" /></>) : (<>Show answer / hint <ChevronDown className="h-4 w-4" /></>)}
-                </Button>
+                  <CardTitle className="font-serif text-xl mt-2">{t.title}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>{t.questions} questions</span>
+                    <span className="flex items-center gap-1"><Timer className="h-3.5 w-3.5" />{t.duration}</span>
+                  </div>
+                  {t.attempted ? (
+                    <div className="text-sm">
+                      <span className="text-muted-foreground">Your score: </span>
+                      <span className="font-serif text-2xl text-gold">{t.score}</span>
+                      <span className="text-muted-foreground"> / {t.questions * 2}</span>
+                    </div>
+                  ) : (
+                    <Button className="w-full" size="sm"><Play className="h-3.5 w-3.5 mr-1" /> Start test</Button>
+                  )}
+                </CardContent>
               </Card>
-            );
-          })}
-        </div>
-      )}
+            ))}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
