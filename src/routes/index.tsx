@@ -95,10 +95,10 @@ function Dashboard() {
                   <span className="absolute inline-flex h-full w-full rounded-full bg-gold opacity-75 animate-pulse-glow" />
                   <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-gold" />
                 </span>
-                Monday · 13 July 2026
+                {new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
               </div>
               <h1 className="mt-3 font-serif text-4xl sm:text-5xl lg:text-6xl leading-[1.02]">
-                Good morning, <span className="italic text-gold">Aspirant</span>.
+                {(() => { const h = new Date().getHours(); return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : h < 21 ? "Good evening" : "Good night"; })()}, <span className="italic text-gold">Aspirant</span>.
               </h1>
               <p className="mt-3 max-w-lg text-primary-foreground/75 text-sm sm:text-base">
                 {totalToday === 0
