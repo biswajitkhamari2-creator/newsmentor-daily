@@ -98,7 +98,10 @@ function Dashboard() {
                 {new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
               </div>
               <h1 className="mt-3 font-serif text-4xl sm:text-5xl lg:text-6xl leading-[1.02]">
-                {(() => { const h = new Date().getHours(); return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : h < 21 ? "Good evening" : "Good night"; })()}, <span className="italic text-gold">Aspirant</span>.
+                <span className="animate-blink-soft">
+                  {(() => { const h = new Date().getHours(); return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : h < 21 ? "Good evening" : "Good night"; })()}
+                </span>
+                , <span className="italic animate-hue-cycle">Aspirant</span>.
               </h1>
               <p className="mt-3 max-w-lg text-primary-foreground/75 text-sm sm:text-base">
                 {totalToday === 0
