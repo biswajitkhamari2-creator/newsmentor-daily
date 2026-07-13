@@ -134,7 +134,22 @@ function Planner() {
           topicId: "extra", topicName: todaySubject.name, point,
         })).filter((it) => !archivedIds.has(it.id));
 
-        const remaining = topicBlocks.reduce((n, b) => n + b.items.length, 0) + extraItems.length;
+        // Practical daily portion: cap today's checklist to a small chunk.
+        const DAILY_LIMIT = 4;
+        const flat = [
+          ...topicBlocks.flatMap((b) => b.items.map((it) => ({ ...it, _tid: b.tid, _topicName: b.topicName, _kind: "topic" as const }))),
+          ...extraItems.map((it) => ({ ...it, _tid: "extra", _topicName: todaySubject.name, _kind: "extra" as const })),
+        ];
+        const totalPending = flat.length;
+        const todaysSlice = flat.slice(0, DAILY_LIMIT);
+        const todayTopicBlocks: typeof topicBlocks = [];
+        todaysSlice.filter((x) => x._kind === "topic").forEach((it) => {
+          let b = todayTopicBlocks.find((x) => x.tid === it._tid);
+          if (!b) { b = { tid: it._tid, topicName: it._topicName, items: [] }; todayTopicBlocks.push(b); }
+          const { _tid, _topicName, _kind, ...rest } = it; b.items.push(rest);
+        });
+        const todayExtra = todaysSlice.filter((x) => x._kind === "extra").map(({ _tid, _topicName, _kind, ...rest }) => rest);
+        const remaining = todaysSlice.length;
         const archivedForSubject = archive.filter((a) => a.subjectKey === todaySubject.key).length;
 
         return (
@@ -142,10 +157,10 @@ function Planner() {
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between flex-wrap gap-2">
               <div>
-                <div className="text-xs uppercase tracking-[0.3em] text-gold">Today's subject</div>
+                <div className="text-xs uppercase tracking-[0.3em] text-gold">Today's plan</div>
                 <CardTitle className="font-serif text-3xl mt-1">{todaySubject.name}</CardTitle>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {todaySubject.paper} · {remaining} left to study{archivedForSubject > 0 ? ` · ${archivedForSubject} already archived` : ""}.
+                  {todaySubject.paper} · today's portion: {remaining} of {totalPending} pending · {archivedForSubject} archived.
                 </p>
               </div>
               <div className="flex gap-2 flex-wrap">
