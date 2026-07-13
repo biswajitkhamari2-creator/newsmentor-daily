@@ -44,7 +44,23 @@ function AnswerWriting() {
   const [text, setText] = useState("");
   const words = text.trim().split(/\s+/).filter(Boolean).length;
   const target = 250;
-  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [history, setHistory] = useState<{ id: number; title: string; when: string; feedback: string }[]>([]);
+
+  const submit = async () => {
+    setLoading(true); setError(null); setFeedback(null);
+    try {
+      const md = await evaluateAnswer(prompt.question, text);
+      setFeedback(md);
+      setHistory((h) => [{ id: Date.now(), title: prompt.question, when: "Just now", feedback: md }, ...h].slice(0, 6));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Evaluation failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6 max-w-[1400px] mx-auto">
