@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { CalendarCheck2, Target, Flame, Plus, BookOpen, ChevronRight, Trash2, Minus, Pencil } from "lucide-react";
+import { CalendarCheck2, Target, Flame, Plus, BookOpen, Trash2, Minus, Pencil } from "lucide-react";
 import { type Task, type SyllabusPaper, type SyllabusTopic } from "@/data/mock";
 import { syllabusDetail, paperOverview } from "@/data/syllabusDetail";
 import { usePlannerStore } from "@/hooks/usePlannerStore";
@@ -29,7 +29,6 @@ function Planner() {
     ready, tasks, syllabus, streak, weeklyGoalHrs, weekHrs,
     toggleTask, addTask, removeTask, setProgress, setWeeklyGoal,
   } = usePlannerStore();
-  const [openTopic, setOpenTopic] = useState<{ topic: SyllabusTopic; paper: SyllabusPaper } | null>(null);
   const [addOpen, setAddOpen] = useState(false);
 
   const done = tasks.filter((t) => t.done).length;
@@ -53,7 +52,7 @@ function Planner() {
           <div className="text-xs uppercase tracking-[0.3em] text-gold">Your Roadmap</div>
           <h1 className="font-serif text-4xl sm:text-5xl mt-1">Study Planner</h1>
           <p className="text-muted-foreground mt-2 max-w-2xl">
-            Tap a subject to see the official syllabus. Add tasks for today, tick them off to build your streak.
+            Official GS-I to GS-IV syllabus is visible below with your progress starting at 0%.
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -76,25 +75,20 @@ function Planner() {
                   </div>
                 </CardHeader>
                 <CardContent className="grid gap-3 sm:grid-cols-2">
-                  {paper.topics.map((t) => (
-                    <div key={t.id} className="rounded-lg border p-3 hover:border-gold/60 hover:shadow-sm transition group">
-                      <button
-                        type="button"
-                        onClick={() => setOpenTopic({ topic: t, paper })}
-                        className="w-full text-left focus:outline-none"
-                      >
+                  {paper.topics.map((t) => {
+                    const detail = syllabusDetail[t.id];
+                    return (
+                    <div key={t.id} className="rounded-lg border p-3 hover:border-gold/60 hover:shadow-sm transition group space-y-3">
+                      <div className="w-full text-left">
                         <div className="flex justify-between text-sm mb-1.5 items-center">
                           <span className="font-medium flex items-center gap-1.5">
                             <BookOpen className="h-3.5 w-3.5 text-gold/70" />
                             {t.name}
                           </span>
-                          <span className="text-muted-foreground text-xs inline-flex items-center gap-1">
-                            {t.progress}%
-                            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground group-hover:text-gold transition" />
-                          </span>
+                          <span className="text-muted-foreground text-xs">{t.progress}%</span>
                         </div>
                         <Progress value={t.progress} className="h-1.5" />
-                      </button>
+                      </div>
                       <div className="flex items-center gap-1 mt-2">
                         <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setProgress(t.id, t.progress - 5)} aria-label="Decrease progress">
                           <Minus className="h-3 w-3" />
@@ -110,8 +104,29 @@ function Planner() {
                           <Plus className="h-3 w-3" />
                         </Button>
                       </div>
+                      <div className="border-t pt-3">
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                          <span className="text-[11px] uppercase tracking-wider text-muted-foreground">Official UPSC syllabus</span>
+                          {detail?.paperRef && (
+                            <Badge variant="outline" className="border-primary/30 text-primary text-[10px]">{detail.paperRef}</Badge>
+                          )}
+                        </div>
+                        {detail ? (
+                          <ul className="space-y-1.5">
+                            {detail.points.map((point, index) => (
+                              <li key={index} className="flex gap-2 text-xs leading-relaxed text-muted-foreground">
+                                <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-gold shrink-0" />
+                                <span>{point}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-xs text-muted-foreground">Official points for this topic are being added.</p>
+                        )}
+                      </div>
                     </div>
-                  ))}
+                  );
+                  })}
                 </CardContent>
               </Card>
             );
@@ -172,70 +187,6 @@ function Planner() {
           </Card>
         </aside>
       </div>
-
-      <Dialog open={!!openTopic} onOpenChange={(o) => !o && setOpenTopic(null)}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
-          {openTopic && (() => {
-            const detail = syllabusDetail[openTopic.topic.id];
-            const overview = paperOverview[openTopic.paper.id];
-            return (
-              <>
-                <DialogHeader>
-                  <div className="text-[11px] uppercase tracking-[0.2em] text-gold">{openTopic.paper.name}</div>
-                  <DialogTitle className="font-serif text-2xl sm:text-3xl mt-1">{openTopic.topic.name}</DialogTitle>
-                  {detail?.paperRef && (
-                    <DialogDescription className="text-xs">
-                      <Badge variant="outline" className="border-primary/30 text-primary">{detail.paperRef}</Badge>
-                    </DialogDescription>
-                  )}
-                </DialogHeader>
-
-                {overview && (
-                  <p className="text-sm text-muted-foreground border-l-2 border-gold/40 pl-3 italic">
-                    {overview}
-                  </p>
-                )}
-
-                <div className="mt-2">
-                  <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
-                    Official UPSC syllabus points
-                  </div>
-                  {detail ? (
-                    <ul className="space-y-2.5">
-                      {detail.points.map((p, i) => (
-                        <li key={i} className="flex gap-2.5 text-sm leading-relaxed">
-                          <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-gold shrink-0" />
-                          <span>{p}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      Detailed points for this topic are being added shortly.
-                    </p>
-                  )}
-                </div>
-
-                <div className="mt-4 pt-4 border-t space-y-2">
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>Your progress</span>
-                    <span className="font-medium text-foreground">{openTopic.topic.progress}%</span>
-                  </div>
-                  <Slider
-                    value={[openTopic.topic.progress]}
-                    onValueChange={(v) => {
-                      setProgress(openTopic.topic.id, v[0]);
-                      setOpenTopic((s) => s ? { ...s, topic: { ...s.topic, progress: v[0] } } : s);
-                    }}
-                    max={100}
-                    step={5}
-                  />
-                </div>
-              </>
-            );
-          })()}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
