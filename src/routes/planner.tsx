@@ -34,17 +34,37 @@ function Planner() {
   const [activeSubject, setActiveSubject] = useState<SubjectEntry | null>(null);
   const [todayKey, setTodayKey] = useState<string | null>(null);
 
+  type ArchiveItem = {
+    id: string;
+    subjectKey: string;
+    subjectName: string;
+    paper: string;
+    topicId: string;
+    topicName: string;
+    point: string;
+    doneAt: string;
+  };
+  const [archive, setArchive] = useState<ArchiveItem[]>([]);
+  const [archiveOpen, setArchiveOpen] = useState(false);
+
   // Persist "today's subject" — resets when the date changes.
   useEffect(() => {
     try {
       const raw = localStorage.getItem("planner:todaySubject");
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as { key: string; date: string };
-      const today = new Date().toDateString();
-      if (parsed.date === today) setTodayKey(parsed.key);
-      else localStorage.removeItem("planner:todaySubject");
+      if (raw) {
+        const parsed = JSON.parse(raw) as { key: string; date: string };
+        if (parsed.date === new Date().toDateString()) setTodayKey(parsed.key);
+        else localStorage.removeItem("planner:todaySubject");
+      }
+      const rawArc = localStorage.getItem("planner:studyArchive");
+      if (rawArc) setArchive(JSON.parse(rawArc) as ArchiveItem[]);
     } catch { /* ignore */ }
   }, []);
+
+  const persistArchive = (next: ArchiveItem[]) => {
+    setArchive(next);
+    try { localStorage.setItem("planner:studyArchive", JSON.stringify(next)); } catch { /* ignore */ }
+  };
 
   const pickTodaySubject = (key: string | null) => {
     setTodayKey(key);
@@ -55,6 +75,13 @@ function Planner() {
   };
 
   const todaySubject = todayKey ? subjects.find((s) => s.key === todayKey) ?? null : null;
+  const archivedIds = useMemo(() => new Set(archive.map((a) => a.id)), [archive]);
+
+  const markPointDone = (item: Omit<ArchiveItem, "doneAt">) => {
+    if (archivedIds.has(item.id)) return;
+    persistArchive([...archive, { ...item, doneAt: new Date().toISOString() }]);
+  };
+  const unmarkPoint = (id: string) => persistArchive(archive.filter((a) => a.id !== id));
 
   const done = tasks.filter((t) => t.done).length;
 
