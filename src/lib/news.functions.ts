@@ -26,7 +26,7 @@ function pick(block: string, tag: string) {
 export const fetchLatestNews = createServerFn({ method: "GET" }).handler(
   async (): Promise<NewsItem[]> => {
     const res = await fetch(FEED_URL, {
-      headers: { "User-Agent": "Mozilla/5.0 NewsMentorDaily/1.0" },
+      headers: { "User-Agent": "Mozilla/5.0 UPSCHeroByBiswajit/1.0" },
     });
     if (!res.ok) throw new Error(`Feed error ${res.status}`);
     const xml = await res.text();

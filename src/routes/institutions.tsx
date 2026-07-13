@@ -24,7 +24,7 @@ import { ArticleDialog } from "@/components/ArticleDialog";
 export const Route = createFileRoute("/institutions")({
   head: () => ({
     meta: [
-      { title: "Institutional Engine — NewsMentor Daily" },
+      { title: "Institutional Engine — UPSC Hero by Biswajit" },
       {
         name: "description",
         content:

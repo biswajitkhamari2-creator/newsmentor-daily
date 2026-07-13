@@ -18,7 +18,7 @@ import { usePlannerStore } from "@/hooks/usePlannerStore";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Dashboard — NewsMentor Daily" },
+      { title: "Dashboard — UPSC Hero by Biswajit" },
       { name: "description", content: "Your daily UPSC command center: today's plan, streak, current affairs, syllabus progress and mock scores." },
     ],
   }),

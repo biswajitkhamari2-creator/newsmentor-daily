@@ -9,7 +9,7 @@ import { askMentor, type MentorMsg } from "@/lib/api";
 export const Route = createFileRoute("/mentor")({
   head: () => ({
     meta: [
-      { title: "AI Mentor — NewsMentor Daily" },
+      { title: "AI Mentor — UPSC Hero by Biswajit" },
       { name: "description", content: "Chat with a 24×7 UPSC mentor powered by Gemini: syllabus doubts, PYQ analysis, current affairs and answer-writing feedback." },
     ],
   }),

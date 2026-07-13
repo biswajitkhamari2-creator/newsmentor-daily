@@ -14,8 +14,8 @@ import { ArticleDialog, type ArticleDialogItem } from "@/components/ArticleDialo
 export const Route = createFileRoute("/current-affairs")({
   head: () => ({
     meta: [
-      { title: "Current Affairs — NewsMentor Daily" },
-      { name: "description", content: "Live GS-tagged current affairs feed and editorial deep-dives, powered by your NewsMentor backend." },
+      { title: "Current Affairs — UPSC Hero by Biswajit" },
+      { name: "description", content: "Live GS-tagged current affairs feed and editorial deep-dives, powered by your UPSC Hero backend." },
     ],
   }),
   component: CurrentAffairs,

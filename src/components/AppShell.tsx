@@ -60,15 +60,15 @@ function AppSidebar() {
       <SidebarHeader className="border-b border-sidebar-border">
         <Link to="/" className="flex items-center gap-2.5 px-2 py-2">
           <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-gold text-gold-foreground font-serif text-lg font-semibold">
-            N
+            U
           </div>
           {!collapsed && (
             <div className="min-w-0">
               <div className="font-serif text-lg leading-none text-sidebar-foreground">
-                NewsMentor
+                UPSC Hero
               </div>
               <div className="text-[10px] uppercase tracking-[0.18em] text-gold/80 mt-1">
-                Daily · UPSC
+                by Biswajit
               </div>
             </div>
           )}
@@ -152,7 +152,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <footer className="border-t bg-muted/30 px-6 py-6 text-xs text-muted-foreground">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
-                <span className="font-serif text-sm text-foreground">NewsMentor Daily</span>
+                <span className="font-serif text-sm text-foreground">UPSC Hero by Biswajit</span>
                 <span className="mx-2">·</span>
                 Made for UPSC Aspirants
               </div>

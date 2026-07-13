@@ -11,7 +11,7 @@ import { evaluateAnswer } from "@/lib/api";
 export const Route = createFileRoute("/answers")({
   head: () => ({
     meta: [
-      { title: "Answer Writing — NewsMentor Daily" },
+      { title: "Answer Writing — UPSC Hero by Biswajit" },
       { name: "description", content: "Practice UPSC Mains answer writing with word-count tracking, model answers and structured feedback." },
     ],
   }),
