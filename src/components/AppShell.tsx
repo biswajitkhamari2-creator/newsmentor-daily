@@ -98,8 +98,8 @@ function AppSidebar() {
               <Flame className="h-4 w-4" />
               <span className="text-xs font-semibold uppercase tracking-wider">Daily streak</span>
             </div>
-            <div className="mt-1 font-serif text-2xl text-sidebar-foreground">12 days</div>
-            <div className="text-[11px] text-sidebar-foreground/70">Keep it going. GS-II due today.</div>
+            <div className="mt-1 font-serif text-2xl text-sidebar-foreground">{streak} {streak === 1 ? "day" : "days"}</div>
+            <div className="text-[11px] text-sidebar-foreground/70 truncate">{streak === 0 ? "Complete a task to start your streak." : `Next up: ${dueLabel}`}</div>
           </div>
         ) : (
           <div className="grid h-9 w-9 place-items-center rounded-lg bg-sidebar-accent/60 text-gold">
