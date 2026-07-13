@@ -60,7 +60,7 @@ function AppSidebar() {
       <SidebarHeader className="border-b border-sidebar-border">
         <Link to="/" className="flex items-center gap-2.5 px-2 py-2">
           <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-gold text-gold-foreground font-serif text-lg font-semibold">
-            N
+            U
           </div>
           {!collapsed && (
             <div className="min-w-0">
@@ -68,7 +68,7 @@ function AppSidebar() {
                 UPSC Hero
               </div>
               <div className="text-[10px] uppercase tracking-[0.18em] text-gold/80 mt-1">
-                Daily · UPSC
+                by Biswajit
               </div>
             </div>
           )}
