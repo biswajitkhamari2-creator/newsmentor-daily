@@ -580,21 +580,17 @@ function Dashboard() {
           </div>
 
           <div className="card-premium p-6 animate-fade-in-up" style={{ animationDelay: "150ms" }}>
-            <h3 className="font-serif text-2xl mb-4">Facts for Prelims</h3>
-            <div className="space-y-3 text-sm">
-              {[
-                { k: "Repo rate", v: "6.5% (unchanged)" },
-                { k: "Green H₂ target", v: "5 MMT by 2030" },
-                { k: "15th FC devolution", v: "41% of central taxes" },
-                { k: "Wassenaar members", v: "42 states" },
-                { k: "Gaganyaan launcher", v: "Human-rated LVM3" },
-              ].map((f, i) => (
-                <div key={f.k} className="flex justify-between gap-2 border-b border-dashed pb-2 last:border-0 animate-fade-in-up" style={{ animationDelay: `${200 + i * 80}ms` }}>
-                  <span className="text-muted-foreground">{f.k}</span>
-                  <span className="font-medium text-right">{f.v}</span>
-                </div>
-              ))}
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-serif text-2xl">Facts for Prelims</h3>
+              <span className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.2em] text-emerald-600">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75 animate-ping" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                </span>
+                Live
+              </span>
             </div>
+            <FactsRotator />
           </div>
         </section>
       </div>
