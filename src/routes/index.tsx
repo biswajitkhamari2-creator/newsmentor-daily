@@ -101,7 +101,9 @@ function Dashboard() {
                 Good morning, <span className="italic text-gold">Aspirant</span>.
               </h1>
               <p className="mt-3 max-w-lg text-primary-foreground/75 text-sm sm:text-base">
-                {done} of {todaysPlan.length} tasks done · 3 editorials queued · GS-II answer due.
+                {totalToday === 0
+                  ? "No tasks yet — add today's plan to start your streak."
+                  : `${done} of ${totalToday} tasks done today.`}
               </p>
               <div className="mt-6 flex flex-wrap gap-2">
                 <Button asChild size="lg" className="bg-gold text-gold-foreground hover:bg-gold/90 shadow-[0_10px_30px_-12px_rgba(201,168,76,0.6)]">
