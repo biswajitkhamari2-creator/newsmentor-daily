@@ -250,8 +250,9 @@ function Planner() {
                   </div>
                 )}
               </div>
-              <DialogFooter className="mt-4">
+              <DialogFooter className="mt-4 gap-2 sm:gap-0">
                 <Button
+                  variant="outline"
                   onClick={() => {
                     addTask({
                       title: `${activeSubject.name} — study block`,
@@ -262,6 +263,14 @@ function Planner() {
                   }}
                 >
                   <Plus className="h-4 w-4 mr-1" /> Add to today's plan
+                </Button>
+                <Button
+                  onClick={() => {
+                    pickTodaySubject(activeSubject.key);
+                    setActiveSubject(null);
+                  }}
+                >
+                  Make this today's subject
                 </Button>
               </DialogFooter>
             </>
