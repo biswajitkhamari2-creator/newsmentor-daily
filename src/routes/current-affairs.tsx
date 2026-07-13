@@ -1,19 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Upload, FileText, Newspaper, Clock, Loader2 } from "lucide-react";
+import { Upload, FileText, Newspaper, Clock, Loader2, RefreshCw, ExternalLink, AlertCircle } from "lucide-react";
 import { headlines } from "@/data/mock";
+import { fetchNews, type LiveNews } from "@/lib/api";
 
 export const Route = createFileRoute("/current-affairs")({
   head: () => ({
     meta: [
       { title: "Current Affairs — NewsMentor Daily" },
-      { name: "description", content: "GS-tagged daily newspaper summaries, editorials and PIB briefs. Upload your own PDF for an AI-styled summary." },
+      { name: "description", content: "Live GS-tagged current affairs feed and editorial deep-dives, powered by your NewsMentor backend." },
     ],
   }),
   component: CurrentAffairs,
@@ -22,9 +23,32 @@ export const Route = createFileRoute("/current-affairs")({
 function CurrentAffairs() {
   const [q, setQ] = useState("");
   const [gs, setGs] = useState<string>("All");
-  const filtered = headlines.filter(
+  const [news, setNews] = useState<LiveNews[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = async (refresh = false) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const items = await fetchNews(refresh);
+      setNews(items);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load news");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(false); }, []);
+
+  const filteredLive = (news ?? []).filter((n) =>
+    n.title.toLowerCase().includes(q.toLowerCase()),
+  );
+  const filteredMock = headlines.filter(
     (h) => (gs === "All" || h.gs === gs) && h.title.toLowerCase().includes(q.toLowerCase()),
   );
+
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6 max-w-[1400px] mx-auto">
