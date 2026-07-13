@@ -22,6 +22,7 @@ export const Route = createFileRoute("/planner")({
 
 function Planner() {
   const [tasks, setTasks] = useState<Task[]>(todaysPlan);
+  const [openTopic, setOpenTopic] = useState<{ topic: SyllabusTopic; paper: SyllabusPaper } | null>(null);
   const toggle = (id: string) => setTasks((prev) => prev.map((t) => t.id === id ? { ...t, done: !t.done } : t));
   const done = tasks.filter((t) => t.done).length;
   const overall = Math.round(
