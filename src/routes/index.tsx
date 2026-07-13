@@ -13,6 +13,7 @@ import { headlines, todaysPlan, syllabus, mockTests, type SyllabusPaper, type Sy
 import { syllabusDetail, paperOverview } from "@/data/syllabusDetail";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
 import { fetchLatestNews } from "@/lib/news.functions";
+import { fetchPrelimsFacts } from "@/lib/facts.functions";
 import { usePlannerStore } from "@/hooks/usePlannerStore";
 
 export const Route = createFileRoute("/")({
