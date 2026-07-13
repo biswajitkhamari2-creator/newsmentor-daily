@@ -79,19 +79,32 @@ function Dashboard() {
   const [openTopic, setOpenTopic] = useState<{ topic: SyllabusTopic; paper: SyllabusPaper } | null>(null);
 
   const greeting = (() => { const h = new Date().getHours(); return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : h < 21 ? "Good evening" : "Good night"; })();
+  const name = "Biswajit";
   const [typed, setTyped] = useState("");
   const [typedDone, setTypedDone] = useState(false);
+  const [nameTyped, setNameTyped] = useState("");
+  const [nameDone, setNameDone] = useState(false);
   useEffect(() => {
-    setTyped(""); setTypedDone(false);
+    setTyped(""); setTypedDone(false); setNameTyped(""); setNameDone(false);
     let i = 0;
     const id = setInterval(() => {
       i++;
       setTyped(greeting.slice(0, i));
-      if (i >= greeting.length) { clearInterval(id); setTypedDone(true); }
+      if (i >= greeting.length) {
+        clearInterval(id);
+        setTypedDone(true);
+        let j = 0;
+        const id2 = setInterval(() => {
+          j++;
+          setNameTyped(name.slice(0, j));
+          if (j >= name.length) { clearInterval(id2); setNameDone(true); }
+        }, 140);
+      }
     }, 110);
     return () => clearInterval(id);
   }, [greeting]);
   const isNight = greeting === "Good night";
+  const letterColors = ["#c9a84c", "#e94560", "#22c55e", "#3b82f6", "#a855f7", "#f97316", "#06b6d4", "#eab308"];
 
   return (
     <div className="relative">
@@ -120,7 +133,16 @@ function Dashboard() {
                 {typedDone && isNight && (
                   <Moon className="h-8 w-8 sm:h-10 sm:w-10 text-gold animate-moon-glow" fill="currentColor" strokeWidth={1.2} />
                 )}
-                <span>, <span className="italic animate-hue-cycle">Aspirant</span>.</span>
+                <span>,{" "}
+                  <span className="italic inline-flex">
+                    {nameTyped.split("").map((ch, i) => (
+                      <span key={i} style={{ color: letterColors[i % letterColors.length] }} className="animate-fade-in inline-block">
+                        {ch}
+                      </span>
+                    ))}
+                    {typedDone && !nameDone && <span className="inline-block w-[3px] h-[0.9em] align-middle bg-gold ml-1 animate-blink-soft" />}
+                  </span>.
+                </span>
               </h1>
               <p className="mt-3 max-w-lg text-primary-foreground/75 text-sm sm:text-base">
                 {totalToday === 0
