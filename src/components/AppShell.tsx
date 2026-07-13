@@ -25,6 +25,7 @@ import {
   Info,
   Flame,
   Search,
+  Building2,
 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { Input } from "@/components/ui/input";

@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as PyqRouteImport } from './routes/pyq'
 import { Route as PlannerRouteImport } from './routes/planner'
 import { Route as MentorRouteImport } from './routes/mentor'
+import { Route as InstitutionsRouteImport } from './routes/institutions'
 import { Route as CurrentAffairsRouteImport } from './routes/current-affairs'
 import { Route as AnswersRouteImport } from './routes/answers'
 import { Route as AboutRouteImport } from './routes/about'
@@ -30,6 +31,11 @@ const PlannerRoute = PlannerRouteImport.update({
 const MentorRoute = MentorRouteImport.update({
   id: '/mentor',
   path: '/mentor',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InstitutionsRoute = InstitutionsRouteImport.update({
+  id: '/institutions',
+  path: '/institutions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CurrentAffairsRoute = CurrentAffairsRouteImport.update({
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/answers': typeof AnswersRoute
   '/current-affairs': typeof CurrentAffairsRoute
+  '/institutions': typeof InstitutionsRoute
   '/mentor': typeof MentorRoute
   '/planner': typeof PlannerRoute
   '/pyq': typeof PyqRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/answers': typeof AnswersRoute
   '/current-affairs': typeof CurrentAffairsRoute
+  '/institutions': typeof InstitutionsRoute
   '/mentor': typeof MentorRoute
   '/planner': typeof PlannerRoute
   '/pyq': typeof PyqRoute
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/answers': typeof AnswersRoute
   '/current-affairs': typeof CurrentAffairsRoute
+  '/institutions': typeof InstitutionsRoute
   '/mentor': typeof MentorRoute
   '/planner': typeof PlannerRoute
   '/pyq': typeof PyqRoute
@@ -88,6 +97,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/answers'
     | '/current-affairs'
+    | '/institutions'
     | '/mentor'
     | '/planner'
     | '/pyq'
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/answers'
     | '/current-affairs'
+    | '/institutions'
     | '/mentor'
     | '/planner'
     | '/pyq'
@@ -106,6 +117,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/answers'
     | '/current-affairs'
+    | '/institutions'
     | '/mentor'
     | '/planner'
     | '/pyq'
@@ -116,6 +128,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AnswersRoute: typeof AnswersRoute
   CurrentAffairsRoute: typeof CurrentAffairsRoute
+  InstitutionsRoute: typeof InstitutionsRoute
   MentorRoute: typeof MentorRoute
   PlannerRoute: typeof PlannerRoute
   PyqRoute: typeof PyqRoute
@@ -142,6 +155,13 @@ declare module '@tanstack/react-router' {
       path: '/mentor'
       fullPath: '/mentor'
       preLoaderRoute: typeof MentorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/institutions': {
+      id: '/institutions'
+      path: '/institutions'
+      fullPath: '/institutions'
+      preLoaderRoute: typeof InstitutionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/current-affairs': {
@@ -180,6 +200,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AnswersRoute: AnswersRoute,
   CurrentAffairsRoute: CurrentAffairsRoute,
+  InstitutionsRoute: InstitutionsRoute,
   MentorRoute: MentorRoute,
   PlannerRoute: PlannerRoute,
   PyqRoute: PyqRoute,
