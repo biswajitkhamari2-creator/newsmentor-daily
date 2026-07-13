@@ -5,8 +5,10 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { CalendarCheck2, Target, Flame, Plus } from "lucide-react";
-import { syllabus, todaysPlan, type Task } from "@/data/mock";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { CalendarCheck2, Target, Flame, Plus, BookOpen, ChevronRight } from "lucide-react";
+import { syllabus, todaysPlan, type Task, type SyllabusPaper, type SyllabusTopic } from "@/data/mock";
+import { syllabusDetail, paperOverview } from "@/data/syllabusDetail";
 
 export const Route = createFileRoute("/planner")({
   head: () => ({
@@ -20,6 +22,7 @@ export const Route = createFileRoute("/planner")({
 
 function Planner() {
   const [tasks, setTasks] = useState<Task[]>(todaysPlan);
+  const [openTopic, setOpenTopic] = useState<{ topic: SyllabusTopic; paper: SyllabusPaper } | null>(null);
   const toggle = (id: string) => setTasks((prev) => prev.map((t) => t.id === id ? { ...t, done: !t.done } : t));
   const done = tasks.filter((t) => t.done).length;
   const overall = Math.round(
@@ -59,13 +62,24 @@ function Planner() {
                 </CardHeader>
                 <CardContent className="grid gap-3 sm:grid-cols-2">
                   {paper.topics.map((t) => (
-                    <div key={t.id} className="rounded-lg border p-3 hover:border-gold/50 transition">
-                      <div className="flex justify-between text-sm mb-1.5">
-                        <span className="font-medium">{t.name}</span>
-                        <span className="text-muted-foreground text-xs">{t.progress}%</span>
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => setOpenTopic({ topic: t, paper })}
+                      className="text-left rounded-lg border p-3 hover:border-gold/60 hover:shadow-sm transition group focus:outline-none focus:ring-2 focus:ring-gold/40"
+                    >
+                      <div className="flex justify-between text-sm mb-1.5 items-center">
+                        <span className="font-medium flex items-center gap-1.5">
+                          <BookOpen className="h-3.5 w-3.5 text-gold/70" />
+                          {t.name}
+                        </span>
+                        <span className="text-muted-foreground text-xs inline-flex items-center gap-1">
+                          {t.progress}%
+                          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground group-hover:text-gold transition" />
+                        </span>
                       </div>
                       <Progress value={t.progress} className="h-1.5" />
-                    </div>
+                    </button>
                   ))}
                 </CardContent>
               </Card>
@@ -108,6 +122,60 @@ function Planner() {
           </Card>
         </aside>
       </div>
+
+      <Dialog open={!!openTopic} onOpenChange={(o) => !o && setOpenTopic(null)}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          {openTopic && (() => {
+            const detail = syllabusDetail[openTopic.topic.id];
+            const overview = paperOverview[openTopic.paper.id];
+            return (
+              <>
+                <DialogHeader>
+                  <div className="text-[11px] uppercase tracking-[0.2em] text-gold">{openTopic.paper.name}</div>
+                  <DialogTitle className="font-serif text-2xl sm:text-3xl mt-1">{openTopic.topic.name}</DialogTitle>
+                  {detail?.paperRef && (
+                    <DialogDescription className="text-xs">
+                      <Badge variant="outline" className="border-primary/30 text-primary">{detail.paperRef}</Badge>
+                    </DialogDescription>
+                  )}
+                </DialogHeader>
+
+                {overview && (
+                  <p className="text-sm text-muted-foreground border-l-2 border-gold/40 pl-3 italic">
+                    {overview}
+                  </p>
+                )}
+
+                <div className="mt-2">
+                  <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+                    Official UPSC syllabus points
+                  </div>
+                  {detail ? (
+                    <ul className="space-y-2.5">
+                      {detail.points.map((p, i) => (
+                        <li key={i} className="flex gap-2.5 text-sm leading-relaxed">
+                          <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-gold shrink-0" />
+                          <span>{p}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      Detailed points for this topic are being added shortly.
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between mt-4 pt-4 border-t text-xs text-muted-foreground">
+                  <span>Your progress</span>
+                  <span className="font-medium text-foreground">{openTopic.topic.progress}%</span>
+                </div>
+                <Progress value={openTopic.topic.progress} className="h-1.5" />
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
