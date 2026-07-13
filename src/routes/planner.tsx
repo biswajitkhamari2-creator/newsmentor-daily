@@ -88,6 +88,73 @@ function Planner() {
         </div>
       </header>
 
+      {todaySubject ? (
+        <Card className="shadow-sm border-gold/40 bg-gradient-to-br from-gold/5 to-transparent">
+          <CardHeader className="pb-3">
+            <div className="flex items-start justify-between flex-wrap gap-2">
+              <div>
+                <div className="text-xs uppercase tracking-[0.3em] text-gold">Today's subject</div>
+                <CardTitle className="font-serif text-3xl mt-1">{todaySubject.name}</CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">{todaySubject.paper} · focus only on this today.</p>
+              </div>
+              <Button size="sm" variant="ghost" onClick={() => pickTodaySubject(null)}>
+                <X className="h-4 w-4 mr-1" /> Change subject
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {todaySubject.topicIds?.map((tid) => {
+              const detail = syllabusDetail[tid];
+              const topicMeta = syllabus.flatMap((p) => p.topics).find((t) => t.id === tid);
+              if (!topicMeta) return null;
+              return (
+                <div key={tid} className="rounded-lg border p-4 bg-card">
+                  <div className="flex justify-between text-sm mb-2 items-center flex-wrap gap-2">
+                    <span className="font-medium flex items-center gap-1.5">
+                      <BookOpen className="h-4 w-4 text-gold" />
+                      {topicMeta.name}
+                    </span>
+                    <span className="text-muted-foreground text-xs">{topicMeta.progress}%</span>
+                  </div>
+                  <Progress value={topicMeta.progress} className="h-1.5" />
+                  <div className="flex items-center gap-1 mt-3">
+                    <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setProgress(tid, topicMeta.progress - 5)} aria-label="Decrease">
+                      <Minus className="h-3 w-3" />
+                    </Button>
+                    <Slider value={[topicMeta.progress]} onValueChange={(v) => setProgress(tid, v[0])} max={100} step={5} className="flex-1" />
+                    <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setProgress(tid, topicMeta.progress + 5)} aria-label="Increase">
+                      <Plus className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  {detail && (
+                    <ul className="space-y-1.5 mt-4 border-t pt-3">
+                      {detail.points.map((p, i) => (
+                        <li key={i} className="flex gap-2 text-xs leading-relaxed text-muted-foreground">
+                          <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-gold shrink-0" />
+                          <span>{p}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              );
+            })}
+            {todaySubject.extraPoints && (
+              <div className="rounded-lg border p-4 bg-card">
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">Official syllabus</div>
+                <ul className="space-y-1.5">
+                  {todaySubject.extraPoints.map((p, i) => (
+                    <li key={i} className="flex gap-2 text-xs leading-relaxed text-muted-foreground">
+                      <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-gold shrink-0" />
+                      <span>{p}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
       <Card className="shadow-sm">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between flex-wrap gap-2">
