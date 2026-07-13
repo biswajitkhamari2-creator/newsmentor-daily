@@ -32,8 +32,30 @@ function Planner() {
   } = usePlannerStore();
   const [addOpen, setAddOpen] = useState(false);
   const [activeSubject, setActiveSubject] = useState<SubjectEntry | null>(null);
+  const [todayKey, setTodayKey] = useState<string | null>(null);
 
-  const done = tasks.filter((t) => t.done).length;
+  // Persist "today's subject" — resets when the date changes.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("planner:todaySubject");
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as { key: string; date: string };
+      const today = new Date().toDateString();
+      if (parsed.date === today) setTodayKey(parsed.key);
+      else localStorage.removeItem("planner:todaySubject");
+    } catch { /* ignore */ }
+  }, []);
+
+  const pickTodaySubject = (key: string | null) => {
+    setTodayKey(key);
+    try {
+      if (key) localStorage.setItem("planner:todaySubject", JSON.stringify({ key, date: new Date().toDateString() }));
+      else localStorage.removeItem("planner:todaySubject");
+    } catch { /* ignore */ }
+  };
+
+  const todaySubject = todayKey ? subjects.find((s) => s.key === todayKey) ?? null : null;
+
   const overall = useMemo(() => {
     const all = syllabus.flatMap((p) => p.topics);
     if (!all.length) return 0;
