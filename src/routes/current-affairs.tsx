@@ -27,6 +27,7 @@ function CurrentAffairs() {
   const [news, setNews] = useState<LiveNews[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [active, setActive] = useState<ArticleDialogItem | null>(null);
 
   const load = async (refresh = false) => {
     setLoading(true);
