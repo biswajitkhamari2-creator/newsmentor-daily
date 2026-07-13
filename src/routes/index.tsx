@@ -133,7 +133,9 @@ function Dashboard() {
               </div>
               <div className="mt-2 flex justify-between text-xs">
                 <span className="text-muted-foreground">{targetPct}% of goal</span>
-                <span className="text-success font-medium">On track</span>
+                <span className={`font-medium ${targetPct >= 100 ? "text-success" : targetPct > 0 ? "text-gold" : "text-muted-foreground"}`}>
+                  {targetPct >= 100 ? "Goal hit" : targetPct > 0 ? "In progress" : "Not started"}
+                </span>
               </div>
             </div>
           </div>
