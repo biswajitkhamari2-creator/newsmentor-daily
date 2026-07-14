@@ -227,11 +227,8 @@ export const fetchInstitutionalNews = createServerFn({ method: "GET" })
     const r = (raw ?? {}) as { range?: "1d" | "7d" };
     return { range: r.range === "7d" ? "7d" : "1d" } as { range: "1d" | "7d" };
   })
-  .handler(async ({ data }): Promise<InstitutionBucket[]> => {
-    const range = data.range;
+  .handler(async (): Promise<InstitutionBucket[]> => {
     const now = Date.now();
-    const cutoff =
-      range === "1d" ? now - 2 * 24 * 60 * 60 * 1000 : now - 8 * 24 * 60 * 60 * 1000;
 
     const results = await Promise.all(
       SOURCES.map(async (s) => {
@@ -241,15 +238,14 @@ export const fetchInstitutionalNews = createServerFn({ method: "GET" })
         } catch {
           items = [];
         }
-        // Drop items older than cutoff (or with future/invalid dates).
+        // Drop only future-dated / invalid items — always show the source's latest.
         const filtered = items.filter((it) => {
           if (!it.pubDate) return true;
           const t = new Date(it.pubDate).getTime();
           if (!t) return true;
-          if (t > now + 24 * 60 * 60 * 1000) return false; // guard: no future-dated items
-          return t >= cutoff;
+          return t <= now + 24 * 60 * 60 * 1000;
         });
-        // Freshest first: items with pubDate sort by date desc; undated keep source order after.
+        // Freshest first.
         filtered.sort((a, b) => {
           const ta = a.pubDate ? new Date(a.pubDate).getTime() : 0;
           const tb = b.pubDate ? new Date(b.pubDate).getTime() : 0;
