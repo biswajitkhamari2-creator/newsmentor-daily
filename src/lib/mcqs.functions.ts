@@ -4,8 +4,10 @@ import { z } from "zod";
 import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 
 const Input = z.object({
-  topic: z.string().min(2).max(200).default("current affairs"),
-  count: z.number().int().min(1).max(10).default(5),
+  topic: z.string().min(2).max(400).default("current affairs"),
+  count: z.number().int().min(1).max(20).default(5),
+  seed: z.string().max(80).optional(),
+  avoid: z.array(z.string()).max(200).optional(),
 });
 
 export const generatePrelimsMcqs = createServerFn({ method: "POST" })
@@ -33,7 +35,7 @@ export const generatePrelimsMcqs = createServerFn({ method: "POST" })
       }),
       system:
         "You are a UPSC Prelims paper-setter. Generate rigorous, factually accurate UPSC Prelims-style MCQs with exactly 4 options each. The 'answer' field must be one of the option strings (verbatim). Explanations must be 2-3 lines with the concept and elimination logic.",
-      prompt: `Generate ${data.count} UPSC Prelims MCQs on: "${data.topic}". Mix subjects (Polity, Economy, Environment, S&T, IR, History, Geography) where the topic allows.`,
+      prompt: `Generate ${data.count} UPSC Prelims MCQs strictly focused on: "${data.topic}". Stay tightly on this topic/subtopic; do not drift to unrelated areas.${data.seed ? ` Variation seed: ${data.seed} — produce a fresh batch, do NOT repeat earlier questions.` : ""}${data.avoid && data.avoid.length ? ` AVOID repeating or paraphrasing any of these previously-asked questions:\n- ${data.avoid.slice(-60).join("\n- ")}` : ""}`,
     });
 
     return output;
