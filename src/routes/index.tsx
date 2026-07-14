@@ -504,24 +504,33 @@ function Dashboard() {
             </div>
           </BentoCard>
 
-          {/* Recent activity */}
+          {/* Recent activity — live from planner + attempts */}
           <BentoCard className="lg:col-span-3" delay={640}>
             <BentoHeader eyebrow="Latest" title="Recent activity" icon={Activity} />
             <div className="mt-4 space-y-3">
-              {recentActivity.map((a, i) => (
-                <div key={i} className="flex items-start gap-3">
-                  <div className="grid h-8 w-8 place-items-center rounded-lg bg-muted text-muted-foreground shrink-0">
-                    <a.icon className="h-4 w-4" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm">
-                      <span className="text-muted-foreground">{a.action}</span>{" "}
-                      <span className="font-medium">{a.target}</span>
-                    </div>
-                    <div className="text-xs text-muted-foreground">{a.when}</div>
-                  </div>
+              {activity.length === 0 ? (
+                <div className="text-sm text-muted-foreground">
+                  No activity yet. Tick a task in your <Link to="/planner" className="underline underline-offset-4 hover:text-gold">planner</Link> or log a mock attempt.
                 </div>
-              ))}
+              ) : (
+                activity.slice(0, 5).map((a) => {
+                  const Icon = activityIcon[a.kind] ?? Activity;
+                  return (
+                    <div key={a.id} className="flex items-start gap-3">
+                      <div className="grid h-8 w-8 place-items-center rounded-lg bg-muted text-muted-foreground shrink-0">
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm">
+                          <span className="text-muted-foreground">{a.action}</span>{" "}
+                          <span className="font-medium">{a.target}</span>
+                        </div>
+                        <div className="text-xs text-muted-foreground">{relativeTime(a.at)}</div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </BentoCard>
 
