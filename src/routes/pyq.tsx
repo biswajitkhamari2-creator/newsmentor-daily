@@ -37,6 +37,23 @@ function PyqPage() {
   const [q, setQ] = useState("");
   const [year, setYear] = useState("All");
   const [paper, setPaper] = useState("All");
+  const { attempts, logAttempt } = useActivityStore();
+
+  const maxFor = (t: typeof mockTests[number]) =>
+    t.type === "Prelims" ? t.questions * 2 : t.type === "Mains" ? t.questions * 10 : t.questions;
+
+  const startMock = (t: typeof mockTests[number]) => {
+    const max = maxFor(t);
+    const input = window.prompt(`Log your score for "${t.title}" (out of ${max}):`);
+    if (input === null) return;
+    const score = Number(input);
+    if (!Number.isFinite(score) || score < 0 || score > max) {
+      window.alert(`Please enter a valid number between 0 and ${max}.`);
+      return;
+    }
+    logAttempt({ mockId: t.id, title: t.title, type: t.type, questions: t.questions, score, max });
+  };
+
 
   const filtered = pyqs.filter(
     (p) =>
