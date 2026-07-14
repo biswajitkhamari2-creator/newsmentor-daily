@@ -119,16 +119,20 @@ async function fetchDrishti(): Promise<InstitutionItem[]> {
   const seen = new Set<string>();
   const items: InstitutionItem[] = [];
   let m: RegExpExecArray | null;
-  while ((m = re.exec(html)) !== null && items.length < 8) {
+  while ((m = re.exec(html)) !== null && items.length < 12) {
     const url = m[1];
     if (url.endsWith("daily-news-analysis")) continue;
     if (seen.has(url)) continue;
     seen.add(url);
     const slug = url.split("/").pop() || "";
+    // Drishti slugs often end with DD-MM-YYYY — parse for freshness sort.
+    const dm = slug.match(/(\d{2})-(\d{2})-(\d{4})$/);
+    const pubDate = dm ? `${dm[3]}-${dm[2]}-${dm[1]}T00:00:00Z` : undefined;
     items.push({
       id: `drishti-${items.length}`,
-      title: titleFromSlug(slug.replace(/-\d+$/, "")),
+      title: titleFromSlug(slug.replace(/-\d{2}-\d{2}-\d{4}$/, "").replace(/-\d+$/, "")),
       link: url,
+      pubDate,
       summary: "",
       bullets: [],
       source: "Drishti IAS",
