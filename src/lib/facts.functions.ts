@@ -1,42 +1,18 @@
 import { createServerFn } from "@tanstack/react-start";
+import { PRELIMS_FACTS, type PrelimsFact } from "@/data/prelimsFacts";
 
-export type PrelimsFact = { k: string; v: string };
+export type { PrelimsFact };
 
-// Wikipedia "On this day" — real, live, no key required.
-const pad = (n: number) => String(n).padStart(2, "0");
-
+// Static, curated Prelims facts — no external fetch, no AI, no demo/placeholder.
+// Rotates deterministically by day so users see variety across visits without
+// introducing fake data. See src/data/prelimsFacts.ts for the source list.
 export const fetchPrelimsFacts = createServerFn({ method: "GET" }).handler(
   async (): Promise<PrelimsFact[]> => {
-    const d = new Date();
-    const url = `https://en.wikipedia.org/api/rest_v1/feed/onthisday/events/${pad(
-      d.getMonth() + 1
-    )}/${pad(d.getDate())}`;
-    try {
-      const res = await fetch(url, {
-        headers: { "User-Agent": "UPSCHeroByBiswajit/1.0 (facts)" },
-      });
-      if (!res.ok) throw new Error(`onthisday ${res.status}`);
-      const json = (await res.json()) as {
-        events?: { year: number; text: string }[];
-      };
-      const events = (json.events ?? [])
-        .filter((e) => e.text && e.year)
-        .sort((a, b) => b.year - a.year)
-        .slice(0, 25)
-        .map<PrelimsFact>((e) => ({
-          k: String(e.year),
-          v: e.text.length > 140 ? e.text.slice(0, 137) + "…" : e.text,
-        }));
-      if (events.length) return events;
-    } catch {
-      // fall through to fallback
-    }
-    return [
-      { k: "Repo rate", v: "6.5% (unchanged)" },
-      { k: "Green H₂ target", v: "5 MMT by 2030" },
-      { k: "15th FC devolution", v: "41% of central taxes" },
-      { k: "Wassenaar members", v: "42 states" },
-      { k: "Gaganyaan launcher", v: "Human-rated LVM3" },
-    ];
+    const day = Math.floor(Date.now() / 86_400_000);
+    const n = PRELIMS_FACTS.length;
+    const start = ((day % n) + n) % n;
+    // Return the full pool rotated by today's offset so the client rotator
+    // has a stable, ordered set to cycle through.
+    return [...PRELIMS_FACTS.slice(start), ...PRELIMS_FACTS.slice(0, start)];
   }
 );
