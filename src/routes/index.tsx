@@ -135,7 +135,7 @@ function FactsRotator() {
 }
 
 function Dashboard() {
-  const { streak, tasks: plannerTasks, weeklyGoalHrs, syllabus: liveSyllabus } = usePlannerStore();
+  const { streak, tasks: plannerTasks, weeklyGoalHrs, syllabus: liveSyllabus, weekDailyHrs, weekHrs } = usePlannerStore();
   const done = plannerTasks.filter((t) => t.done).length;
   const totalToday = plannerTasks.length;
   const topics = liveSyllabus.flatMap((p) => p.topics);
