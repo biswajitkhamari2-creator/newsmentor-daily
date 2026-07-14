@@ -124,31 +124,48 @@ function parseDMY(s: string): string | undefined {
   return `${m[3]}-${mon}-${dd}T00:00:00Z`;
 }
 
+function parseDDMMYYYY(s: string): string | undefined {
+  const m = s.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+  if (!m) return undefined;
+  return `${m[3]}-${m[2]}-${m[1]}T00:00:00Z`;
+}
+
+function fmtDate(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
 async function fetchDrishti(): Promise<InstitutionItem[]> {
+  // Drishti's current, freshly-updated feed lives on the editorials landing:
+  // https://www.drishtiias.com/current-affairs-news-analysis-editorials
+  // Each day's aggregated News Analysis + Editorials is linked by date.
   const html = await fetchText(
-    "https://www.drishtiias.com/daily-updates/daily-news-analysis",
+    "https://www.drishtiias.com/current-affairs-news-analysis-editorials",
   );
-  // Pair each article link with the nearest following `<li class="date">…</li>`
-  const re = new RegExp(
-    'href="(https://www\\.drishtiias\\.com/daily-updates/daily-news-analysis/[a-z0-9-]+)"' +
-      '[\\s\\S]{0,4000}?<li class="date">([^<]+)</li>',
-    "g",
-  );
+  const re =
+    /href="(https:\/\/www\.drishtiias\.com\/current-affairs-news-analysis-editorials\/news-analysis\/(\d{2}-\d{2}-\d{4}))"/g;
   const seen = new Set<string>();
   const items: InstitutionItem[] = [];
   let m: RegExpExecArray | null;
-  while ((m = re.exec(html)) !== null && items.length < 20) {
+  while ((m = re.exec(html)) !== null && items.length < 12) {
     const url = m[1];
-    if (url.endsWith("daily-news-analysis")) continue;
+    const ddmmyyyy = m[2];
     if (seen.has(url)) continue;
     seen.add(url);
-    const slug = url.split("/").pop() || "";
+    const iso = parseDDMMYYYY(ddmmyyyy);
     items.push({
       id: `drishti-${items.length}`,
-      title: titleFromSlug(slug.replace(/-\d+$/, "")),
+      title: iso
+        ? `News Analysis & Editorials — ${fmtDate(iso)}`
+        : `News Analysis & Editorials — ${ddmmyyyy}`,
       link: url,
-      pubDate: parseDMY(m[2].trim()),
-      summary: "",
+      pubDate: iso,
+      summary:
+        "Drishti IAS daily aggregated news analysis and editorials. Open to read the full day's coverage.",
       bullets: [],
       source: "Drishti IAS",
     });
