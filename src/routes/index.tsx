@@ -55,67 +55,74 @@ function FactsRotator() {
   const { data } = useQuery({
     queryKey: ["prelims-facts"],
     queryFn: () => fetchPrelimsFacts(),
-    staleTime: 10 * 60_000,
-    refetchInterval: 10 * 60_000,
+    staleTime: 60 * 60_000,
+    refetchInterval: 60 * 60_000,
   });
-  const pool = (data && data.length >= 5) ? data : [
-    { k: "Repo rate", v: "6.5% (unchanged)" },
-    { k: "Green H₂ target", v: "5 MMT by 2030" },
-    { k: "15th FC devolution", v: "41% of central taxes" },
-    { k: "Wassenaar members", v: "42 states" },
-    { k: "Gaganyaan launcher", v: "Human-rated LVM3" },
+  const fallback = [
+    { k: "Article 32", v: "Right to constitutional remedies", c: "Polity" as const },
+    { k: "Article 280", v: "Finance Commission — every 5 years", c: "Polity" as const },
+    { k: "Repo rate", v: "6.50% (RBI MPC)", c: "Economics" as const },
+    { k: "Poorna Swaraj", v: "Lahore Session, 26 Jan 1930", c: "History" as const },
+    { k: "IST meridian", v: "82°30′ E through Mirzapur", c: "Geography" as const },
   ];
+  const pool = (data && data.length >= 5) ? data : fallback;
   const SLOTS = 5;
-  const [indices, setIndices] = useState<number[]>(() =>
-    Array.from({ length: SLOTS }, (_, i) => i % Math.max(pool.length, 1))
-  );
+
+  // Sequential window walker — start at 0 (Polity) and step forward one
+  // position every tick so the display cycles: Polity → Economics → History
+  // → Geography → (loop) forever.
+  const [start, setStart] = useState(0);
   const [blink, setBlink] = useState<number>(-1);
 
   useEffect(() => {
-    setIndices(Array.from({ length: SLOTS }, (_, i) => i % Math.max(pool.length, 1)));
-  }, [pool.length]);
-
-  useEffect(() => {
     if (pool.length <= SLOTS) return;
-    let slot = 0;
     const id = setInterval(() => {
-      const s = slot % SLOTS;
-      setBlink(s);
+      setBlink(SLOTS - 1); // fade out trailing slot
       setTimeout(() => {
-        setIndices((prev) => {
-          const used = new Set(prev);
-          let next = (prev[s] + SLOTS) % pool.length;
-          let guard = 0;
-          while (used.has(next) && guard++ < pool.length) next = (next + 1) % pool.length;
-          const copy = [...prev];
-          copy[s] = next;
-          return copy;
-        });
+        setStart((s) => (s + 1) % pool.length);
         setBlink(-1);
       }, 260);
-      slot++;
-    }, 2200);
+    }, 2400);
     return () => clearInterval(id);
   }, [pool.length]);
+
+  const indices = Array.from({ length: SLOTS }, (_, i) => (start + i) % Math.max(pool.length, 1));
+
+  const catTone: Record<string, string> = {
+    Polity: "text-primary border-primary/30 bg-primary/10",
+    Economics: "text-success border-success/30 bg-success/10",
+    History: "text-gold border-gold/30 bg-gold/10",
+    Geography: "text-highlight border-highlight/30 bg-highlight/10",
+  };
 
   return (
     <div className="space-y-3 text-sm">
       {indices.map((idx, i) => {
         const f = pool[idx] ?? pool[0];
+        const cat = (f as { c?: string }).c ?? "Polity";
         const isBlink = blink === i;
         return (
           <div
-            key={i}
+            key={`${idx}-${i}`}
             className="flex items-start justify-between gap-3 border-b border-dashed pb-2 last:border-0 animate-fade-in-up"
             style={{ animationDelay: `${200 + i * 80}ms` }}
           >
-            <span
-              className={`shrink-0 font-mono text-xs tabular-nums px-1.5 py-0.5 rounded bg-gold/10 text-gold border border-gold/20 transition-all duration-300 ${
-                isBlink ? "opacity-0 blur-sm -translate-y-1" : "opacity-100 blur-0 translate-y-0"
-              }`}
-            >
-              {f.k}
-            </span>
+            <div className="flex flex-col gap-1 min-w-0">
+              <span
+                className={`self-start text-[9px] uppercase tracking-[0.18em] px-1.5 py-0.5 rounded border ${catTone[cat] ?? catTone.Polity} transition-all duration-300 ${
+                  isBlink ? "opacity-0 -translate-y-1" : "opacity-100 translate-y-0"
+                }`}
+              >
+                {cat}
+              </span>
+              <span
+                className={`font-mono text-xs tabular-nums transition-all duration-300 ${
+                  isBlink ? "opacity-0 blur-sm -translate-y-1" : "opacity-100 blur-0 translate-y-0"
+                }`}
+              >
+                {f.k}
+              </span>
+            </div>
             <span
               className={`font-medium text-right transition-all duration-300 ${
                 isBlink ? "opacity-0 blur-sm translate-y-1" : "opacity-100 blur-0 translate-y-0"
