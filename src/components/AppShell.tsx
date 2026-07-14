@@ -12,10 +12,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
-  useSidebar as _useSidebarUnused,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { HamburgerTrigger } from "./HamburgerTrigger";
-import { useSidebar } from "@/components/ui/sidebar";
 import {
   LayoutDashboard,
   Newspaper,
