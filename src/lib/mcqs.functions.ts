@@ -81,21 +81,25 @@ export const generatePrelimsMcqs = createServerFn({ method: "POST" })
     for (let i = 0; i < batches.length; i++) {
       const size = batches[i];
       const avoidCombined = [...avoidList, ...seenSoFar].slice(-60);
-      const prompt = `Generate ${size} UPSC Prelims MCQs strictly focused on: "${data.topic}". Stay tightly on this topic/subtopic; do not drift. Each MCQ must have exactly 4 options in the options array, and answer must exactly match one option.${data.seed ? ` Variation seed: ${data.seed}-b${i} — produce a fresh batch.` : ""}${avoidCombined.length ? ` AVOID repeating or paraphrasing any of these previously-asked questions:\n- ${avoidCombined.join("\n- ")}` : ""}`;
+      const prompt = `Generate ${size} UPSC Prelims MCQs strictly focused on: "${data.topic}". Stay tightly on this topic/subtopic; do not drift. Return ONLY valid JSON (no markdown fences, no prose) in this exact shape:
+{"mcqs":[{"question":"...","options":["a","b","c","d"],"answer":"exact text of correct option","explanation":"1-2 lines","topic":"${data.topic}"}]}
+Each MCQ must have exactly 4 options and answer must exactly match one option.${data.seed ? ` Variation seed: ${data.seed}-b${i} — produce a fresh batch.` : ""}${avoidCombined.length ? ` AVOID repeating or paraphrasing any of these previously-asked questions:\n- ${avoidCombined.join("\n- ")}` : ""}`;
       let rawBatch: z.infer<typeof McqSchema>["mcqs"] = [];
       try {
-        const { output } = await generateText({
+        const { text } = await generateText({
           model,
           maxOutputTokens: 6144,
-          output: Output.object({ schema: McqSchema }),
           system:
-            "You are a UPSC Prelims paper-setter. Generate rigorous, factually accurate UPSC Prelims-style MCQs. Return only the requested object shape. Keep explanations to 1-2 crisp lines.",
+            "You are a UPSC Prelims paper-setter. Generate rigorous, factually accurate UPSC Prelims-style MCQs. Respond with ONLY valid JSON matching the requested shape — no markdown fences, no commentary.",
           prompt,
         });
-        rawBatch = output.mcqs;
+        rawBatch = parseFallback(text);
       } catch (error) {
-        if (!NoObjectGeneratedError.isInstance(error)) throw error;
-        rawBatch = parseFallback(error.text);
+        if (NoObjectGeneratedError.isInstance(error)) {
+          rawBatch = parseFallback(error.text);
+        } else {
+          throw error;
+        }
       }
       const batch = normalize(rawBatch);
       all.push(...batch);
