@@ -315,10 +315,23 @@ function UnlimitedMockPanel() {
                         })}
                       </ul>
                     )}
-                    <div className="mt-3 flex items-center gap-2">
+                    <div className="mt-3 flex items-center gap-2 flex-wrap">
                       <Button size="sm" variant="outline" onClick={() => setRevealed((r) => ({ ...r, [i]: !r[i] }))}>
                         {isRevealed ? "Hide answer" : "Reveal answer"}
                       </Button>
+                      {(() => {
+                        const saved = bookmarks.has(m);
+                        return (
+                          <Button
+                            size="sm"
+                            variant={saved ? "default" : "outline"}
+                            onClick={() => bookmarks.toggle({ ...m, topic: m.topic ?? effectiveTopic })}
+                            className={saved ? "bg-gold text-gold-foreground hover:bg-gold/90" : ""}
+                          >
+                            {saved ? <><BookmarkCheck className="h-3.5 w-3.5 mr-1" /> Bookmarked</> : <><BookmarkPlus className="h-3.5 w-3.5 mr-1" /> Bookmark</>}
+                          </Button>
+                        );
+                      })()}
                       {isRevealed && m.answer && (
                         <span className="text-sm text-gold">Correct: {m.answer}</span>
                       )}
