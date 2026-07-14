@@ -147,6 +147,7 @@ export function usePlannerStore() {
     streak: state.streak,
     weeklyGoalHrs: state.weeklyGoalHrs,
     weekHrs,
+    weekDailyHrs,
     toggleTask,
     addTask,
     removeTask,
