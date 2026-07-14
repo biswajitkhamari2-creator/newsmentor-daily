@@ -110,29 +110,44 @@ async function fetchVisionIAS(): Promise<InstitutionItem[]> {
   return items;
 }
 
+const MONTHS: Record<string, string> = {
+  jan: "01", feb: "02", mar: "03", apr: "04", may: "05", jun: "06",
+  jul: "07", aug: "08", sep: "09", oct: "10", nov: "11", dec: "12",
+};
+function parseDMY(s: string): string | undefined {
+  // Matches "04 May 2026" or "4 May 2026"
+  const m = s.match(/(\d{1,2})\s+([A-Za-z]{3,9})\s+(\d{4})/);
+  if (!m) return undefined;
+  const mon = MONTHS[m[2].slice(0, 3).toLowerCase()];
+  if (!mon) return undefined;
+  const dd = m[1].padStart(2, "0");
+  return `${m[3]}-${mon}-${dd}T00:00:00Z`;
+}
+
 async function fetchDrishti(): Promise<InstitutionItem[]> {
   const html = await fetchText(
     "https://www.drishtiias.com/daily-updates/daily-news-analysis",
   );
-  const re =
-    /href="(https:\/\/www\.drishtiias\.com\/daily-updates\/daily-news-analysis\/[a-z0-9-]+)"/g;
+  // Pair each article link with the nearest following `<li class="date">…</li>`
+  const re = new RegExp(
+    'href="(https://www\\.drishtiias\\.com/daily-updates/daily-news-analysis/[a-z0-9-]+)"' +
+      '[\\s\\S]{0,4000}?<li class="date">([^<]+)</li>',
+    "g",
+  );
   const seen = new Set<string>();
   const items: InstitutionItem[] = [];
   let m: RegExpExecArray | null;
-  while ((m = re.exec(html)) !== null && items.length < 12) {
+  while ((m = re.exec(html)) !== null && items.length < 20) {
     const url = m[1];
     if (url.endsWith("daily-news-analysis")) continue;
     if (seen.has(url)) continue;
     seen.add(url);
     const slug = url.split("/").pop() || "";
-    // Drishti slugs often end with DD-MM-YYYY — parse for freshness sort.
-    const dm = slug.match(/(\d{2})-(\d{2})-(\d{4})$/);
-    const pubDate = dm ? `${dm[3]}-${dm[2]}-${dm[1]}T00:00:00Z` : undefined;
     items.push({
       id: `drishti-${items.length}`,
-      title: titleFromSlug(slug.replace(/-\d{2}-\d{2}-\d{4}$/, "").replace(/-\d+$/, "")),
+      title: titleFromSlug(slug.replace(/-\d+$/, "")),
       link: url,
-      pubDate,
+      pubDate: parseDMY(m[2].trim()),
       summary: "",
       bullets: [],
       source: "Drishti IAS",
