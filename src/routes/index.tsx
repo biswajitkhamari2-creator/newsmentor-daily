@@ -143,7 +143,8 @@ function Dashboard() {
   const targetHours = Math.max(1, Math.round((weeklyGoalHrs / 7) * 10) / 10);
   const doneHours = Math.round(done * 0.5 * 10) / 10;
   const targetPct = Math.min(100, Math.round((doneHours / targetHours) * 100));
-  const maxWeek = Math.max(...weeklyHours);
+  const maxWeek = Math.max(0.5, ...weekDailyHrs);
+  const todayDow = (new Date().getDay() + 6) % 7; // 0=Mon..6=Sun
 
   const { data: liveNews } = useQuery({
     queryKey: ["latest-news"],
