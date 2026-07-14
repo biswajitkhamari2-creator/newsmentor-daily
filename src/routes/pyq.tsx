@@ -299,12 +299,14 @@ function LivePractice() {
 }
 
 type GeneratedQ = {
+  id: string;
   question: string;
   marks: number;
   wordLimit: number;
   paper: string;
   hint: string;
   keyPoints: string[];
+  modelAnswer: string;
 };
 
 function MainsGenerator() {
@@ -393,21 +395,27 @@ function MainsGenerator() {
       {questions && questions.length > 0 && (
         <div className="space-y-3">
           {questions.map((q, i) => (
-            <Collapsible key={i}>
-              <Card className="shadow-sm">
-                <CardContent className="p-5">
-                  <div className="flex flex-wrap gap-2 items-center">
-                    <Badge className="bg-primary text-primary-foreground">{q.paper}</Badge>
-                    <Badge variant="outline">{q.marks} marks</Badge>
-                    <Badge variant="outline" className="border-gold/50 text-gold">{q.wordLimit} words</Badge>
-                    <Badge variant="outline"><Sparkles className="h-3 w-3 mr-1" />AI</Badge>
-                  </div>
-                  <p className="mt-3 font-serif text-lg leading-snug">{q.question}</p>
-                  <CollapsibleTrigger className="group mt-3 text-sm text-primary hover:text-gold inline-flex items-center gap-1">
-                    Reveal hint & key points
-                    <ChevronDown className="h-4 w-4 transition group-data-[state=open]:rotate-180" />
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="mt-3 space-y-3">
+            <Card key={q.id} className="shadow-sm">
+              <CardContent className="p-5">
+                <div className="flex flex-wrap gap-2 items-center">
+                  <Badge className="bg-primary text-primary-foreground">{q.paper}</Badge>
+                  <Badge variant="outline">{q.marks} marks</Badge>
+                  <Badge variant="outline" className="border-gold/50 text-gold">{q.wordLimit} words</Badge>
+                  <Badge variant="outline" className="font-mono text-[10px] tracking-wider">{q.id}</Badge>
+                </div>
+                <p className="mt-3 font-serif text-lg leading-snug">{q.question}</p>
+                <Tabs defaultValue={`q-${i}`} className="mt-4">
+                  <TabsList>
+                    <TabsTrigger value={`q-${i}`}>Question</TabsTrigger>
+                    <TabsTrigger value={`h-${i}`}>Hint & Key points</TabsTrigger>
+                    <TabsTrigger value={`a-${i}`}>Model Answer</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value={`q-${i}`} className="mt-3">
+                    <div className="rounded-md bg-muted/40 p-3 text-sm text-muted-foreground">
+                      Attempt this question in <strong>{q.wordLimit} words</strong> within ~{q.marks === 15 ? 18 : 9} minutes. Reference ID: <span className="font-mono text-foreground">{q.id}</span>.
+                    </div>
+                  </TabsContent>
+                  <TabsContent value={`h-${i}`} className="mt-3 space-y-3">
                     <div className="rounded-md border border-gold/40 bg-gold/5 p-3 text-sm">
                       <span className="font-semibold text-gold">Hint · </span>{q.hint}
                     </div>
@@ -417,10 +425,19 @@ function MainsGenerator() {
                         {q.keyPoints.map((kp, j) => <li key={j}>{kp}</li>)}
                       </ul>
                     </div>
-                  </CollapsibleContent>
-                </CardContent>
-              </Card>
-            </Collapsible>
+                  </TabsContent>
+                  <TabsContent value={`a-${i}`} className="mt-3">
+                    <div className="rounded-md border border-primary/30 bg-primary/5 p-4 text-sm whitespace-pre-line leading-relaxed">
+                      <div className="mb-2 flex items-center justify-between">
+                        <span className="font-semibold text-primary">Model Answer</span>
+                        <span className="font-mono text-[10px] text-muted-foreground">{q.id}</span>
+                      </div>
+                      {q.modelAnswer}
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
           ))}
         </div>
       )}

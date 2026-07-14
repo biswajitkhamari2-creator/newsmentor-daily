@@ -7,13 +7,36 @@ const Input = z.object({
 });
 
 type Question = {
+  id: string;
   question: string;
   marks: number;
   wordLimit: number;
   paper: string;
   hint: string;
   keyPoints: string[];
+  modelAnswer: string;
 };
+
+function slugify(s: string) {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 32);
+}
+
+function buildAnswer(topic: string, paper: string, marks: number, keyPoints: string[]) {
+  const t = topic.trim();
+  const T = t.charAt(0).toUpperCase() + t.slice(1);
+  const intro = `Introduction: ${T} has emerged as a defining ${paper === "Essay" ? "theme" : "policy concern"} in contemporary India, sitting at the intersection of governance, society and long-term national interest.`;
+  const body = keyPoints
+    .map(
+      (kp, i) =>
+        `${i + 1}. ${kp}. This dimension shapes how ${t} unfolds on the ground — supported by constitutional provisions, recent government initiatives, expert committee reports and comparative global practice.`,
+    )
+    .join("\n\n");
+  const critique = `Critical appraisal: Despite progress, ${t} continues to face implementation deficits, capacity gaps and coordination issues across the Union, States and local bodies. A rights-based, evidence-driven and citizen-centric approach is essential.`;
+  const wayForward = `Way forward: Strengthen institutional capacity, leverage technology, ensure transparent monitoring, and align ${t} with SDGs and the vision of a viksit, inclusive India.`;
+  const conclusion = `Conclusion: A holistic, whole-of-government response to ${t}, rooted in constitutional morality and public trust, can convert today's challenges into tomorrow's opportunities. (Target ~${marks === 15 ? 250 : 150} words)`;
+  return [intro, body, critique, wayForward, conclusion].join("\n\n");
+}
+
 
 const PAPERS = ["GS-I", "GS-II", "GS-III", "GS-IV", "Essay"] as const;
 
@@ -97,15 +120,23 @@ export const generateMainsQuestions = createServerFn({ method: "POST" })
     const topic = data.topic.trim();
     const count = Math.min(data.count, TEMPLATES.length);
 
+    const slug = slugify(topic) || "topic";
+    const stamp = Date.now().toString(36).slice(-4);
+
     const questions: Question[] = TEMPLATES.slice(0, count).map((tpl, i) => {
       const marks = i % 2 === 0 ? 15 : 10;
+      const paper = tpl.paper;
+      const keyPoints = tpl.points(topic);
+      const id = `MQ-${slug}-${stamp}-${String(i + 1).padStart(2, "0")}`;
       return {
+        id,
         question: tpl.stem(topic),
         marks,
         wordLimit: marks === 15 ? 250 : 150,
-        paper: tpl.paper,
+        paper,
         hint: tpl.hint(topic),
-        keyPoints: tpl.points(topic),
+        keyPoints,
+        modelAnswer: buildAnswer(topic, paper, marks, keyPoints),
       };
     });
 
