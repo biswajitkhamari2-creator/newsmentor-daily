@@ -142,46 +142,200 @@ function PyqPage() {
         </TabsContent>
 
         <TabsContent value="mock" className="mt-4">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {mockTests.map((t) => {
-              const myAttempts = attempts.filter((a) => a.mockId === t.id);
-              const latest = myAttempts[0];
-              const attempted = !!latest;
-              const max = maxFor(t);
+          <UnlimitedMockPanel />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+const SUBJECTS: { key: string; label: string; subtopics: string[] }[] = [
+  { key: "Polity", label: "Polity", subtopics: ["President — election & impeachment", "Parliament", "Judiciary", "Fundamental Rights", "DPSP", "Federalism", "Emergency Provisions", "Constitutional Bodies"] },
+  { key: "Economy", label: "Economy", subtopics: ["Monetary Policy & RBI", "Fiscal Policy & Budget", "Banking & NPAs", "Inflation & CPI", "External Sector & BoP", "GST", "Agriculture & MSP", "Capital Markets"] },
+  { key: "History", label: "History", subtopics: ["Indus Valley", "Mauryan Empire", "Mughal Empire", "1857 Revolt", "Freedom Struggle 1885-1919", "Gandhian Movements", "Post-Independence Consolidation"] },
+  { key: "Geography", label: "Geography", subtopics: ["Indian Monsoon", "Rivers & Drainage", "Soils of India", "Climatology", "Oceanography", "Volcanoes & Earthquakes", "Population & Urbanisation"] },
+  { key: "Environment", label: "Environment", subtopics: ["Biodiversity Hotspots", "Protected Areas", "Climate Change & COP", "Wetlands & Ramsar", "Pollution Control Acts", "Renewable Energy"] },
+  { key: "Science & Tech", label: "Science & Tech", subtopics: ["Space — ISRO Missions", "Defence Tech", "Biotech & Vaccines", "IT & AI", "Nuclear Programme"] },
+  { key: "IR", label: "International Relations", subtopics: ["India-US", "India-China", "India-Russia", "Neighbourhood First", "QUAD & Indo-Pacific", "UN & Multilateralism"] },
+  { key: "Current Affairs", label: "Current Affairs", subtopics: ["Recent Schemes", "Recent SC Judgments", "Recent Bills & Acts", "Reports & Indices", "Summits & Awards"] },
+];
+
+function UnlimitedMockPanel() {
+  const genMcqs = useServerFn(generatePrelimsMcqs);
+  const [subject, setSubject] = useState(SUBJECTS[0].key);
+  const [subtopic, setSubtopic] = useState(SUBJECTS[0].subtopics[0]);
+  const [custom, setCustom] = useState("");
+  const [pages, setPages] = useState<LiveMcq[][]>([]);
+  const [pageIdx, setPageIdx] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [revealed, setRevealed] = useState<Record<number, boolean>>({});
+
+  const currentSubject = SUBJECTS.find((s) => s.key === subject) ?? SUBJECTS[0];
+  const effectiveTopic = custom.trim()
+    ? `${subject} → ${custom.trim()}`
+    : `${subject} → ${subtopic}`;
+
+  const loadPage = async (nextIdx: number, reset = false) => {
+    setLoading(true); setError(null);
+    try {
+      const avoid = reset ? [] : pages.flat().map((m) => m.question);
+      const out = await genMcqs({
+        data: {
+          topic: effectiveTopic,
+          count: 20,
+          seed: `page-${nextIdx}-${Date.now()}`,
+          avoid,
+        },
+      });
+      const batch = out.mcqs as LiveMcq[];
+      setPages((prev) => (reset ? [batch] : [...prev, batch]));
+      setPageIdx(reset ? 0 : nextIdx);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Failed to generate";
+      if (msg.includes("429")) setError("Rate limit hit. Retry in a moment.");
+      else if (msg.includes("402")) setError("AI credits exhausted. Add credits to continue.");
+      else setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const start = () => {
+    setAnswers({}); setRevealed({});
+    loadPage(0, true);
+  };
+
+  const next = () => {
+    if (pageIdx + 1 < pages.length) { setPageIdx(pageIdx + 1); return; }
+    loadPage(pages.length, false);
+  };
+
+  const prev = () => { if (pageIdx > 0) setPageIdx(pageIdx - 1); };
+
+  const currentPage = pages[pageIdx] ?? [];
+  const pageOffset = pageIdx * 20;
+
+  return (
+    <div className="space-y-4">
+      <Card className="shadow-sm">
+        <CardContent className="p-5 space-y-4">
+          <div className="flex items-center gap-2 text-sm">
+            <Sparkles className="h-4 w-4 text-gold" />
+            <span className="font-semibold">Unlimited Mock Test — pick a topic & subtopic</span>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="space-y-1">
+              <label className="text-xs uppercase tracking-widest text-muted-foreground">Subject</label>
+              <Select value={subject} onValueChange={(v) => { setSubject(v); const s = SUBJECTS.find((x) => x.key === v); if (s) setSubtopic(s.subtopics[0]); }}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{SUBJECTS.map((s) => <SelectItem key={s.key} value={s.key}>{s.label}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs uppercase tracking-widest text-muted-foreground">Subtopic</label>
+              <Select value={subtopic} onValueChange={setSubtopic}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{currentSubject.subtopics.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs uppercase tracking-widest text-muted-foreground">Custom (optional)</label>
+              <Input placeholder="e.g. Impeachment of President" value={custom} onChange={(e) => setCustom(e.target.value)} />
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button onClick={start} disabled={loading}>
+              {loading && pages.length === 0 ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <Play className="h-3.5 w-3.5 mr-1" />}
+              {pages.length ? "Restart with these" : "Start test"}
+            </Button>
+            <Badge variant="outline" className="border-gold/50 text-gold">20 questions per page · unlimited pages</Badge>
+            <span className="text-xs text-muted-foreground ml-auto">Focus: {effectiveTopic}</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      {error && (
+        <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm text-destructive flex items-center gap-2">
+          <AlertCircle className="h-4 w-4" /> {error}
+        </div>
+      )}
+
+      {pages.length > 0 && (
+        <>
+          <div className="flex items-center justify-between">
+            <h3 className="font-serif text-xl">Page {pageIdx + 1} · Q{pageOffset + 1}–{pageOffset + currentPage.length}</h3>
+            <div className="text-xs text-muted-foreground">Total generated: {pages.flat().length}</div>
+          </div>
+
+          <div className="space-y-3">
+            {currentPage.map((m, i) => {
+              const qNum = pageOffset + i + 1;
+              const key = `${pageIdx}-${i}`;
+              const picked = answers[key];
+              const isRevealed = revealed[i];
               return (
-                <Card key={t.id} className="hover-lift shadow-sm">
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-start">
-                      <Badge variant="outline" className="text-xs">{t.type}</Badge>
-                      {attempted && <Badge className="bg-gold text-gold-foreground text-xs"><CheckCircle2 className="h-3 w-3 mr-1" />Done</Badge>}
+                <Card key={key} className="shadow-sm">
+                  <CardContent className="p-5">
+                    <div className="flex flex-wrap gap-2 items-center">
+                      <Badge className="bg-primary text-primary-foreground">Q{qNum}</Badge>
+                      {m.topic && <Badge variant="outline">{m.topic}</Badge>}
                     </div>
-                    <CardTitle className="font-serif text-xl mt-2">{t.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex justify-between text-sm text-muted-foreground">
-                      <span>{t.questions} questions</span>
-                      <span className="flex items-center gap-1"><Timer className="h-3.5 w-3.5" />{t.duration}</span>
-                    </div>
-                    {attempted && (
-                      <div className="text-sm">
-                        <span className="text-muted-foreground">Your score: </span>
-                        <span className="font-serif text-2xl text-gold">{latest.score}</span>
-                        <span className="text-muted-foreground"> / {latest.max}</span>
-                        <div className="text-[11px] text-muted-foreground mt-0.5">
-                          {relativeTime(latest.at)}{myAttempts.length > 1 ? ` · ${myAttempts.length} attempts` : ""}
-                        </div>
-                      </div>
+                    <p className="mt-3 font-serif text-lg leading-snug">{m.question}</p>
+                    {m.options && (
+                      <ul className="mt-3 space-y-1.5 text-sm">
+                        {m.options.map((o, j) => {
+                          const letter = String.fromCharCode(97 + j);
+                          const isPicked = picked === o;
+                          const isCorrect = isRevealed && m.answer && o === m.answer;
+                          const isWrong = isRevealed && isPicked && o !== m.answer;
+                          return (
+                            <li key={j}>
+                              <button
+                                type="button"
+                                onClick={() => setAnswers((a) => ({ ...a, [key]: o }))}
+                                className={`w-full text-left flex gap-2 px-3 py-1.5 rounded-md border transition ${
+                                  isCorrect ? "border-gold bg-gold/10" :
+                                  isWrong ? "border-destructive/60 bg-destructive/10" :
+                                  isPicked ? "border-primary bg-primary/5" : "border-border hover:bg-muted/40"
+                                }`}
+                              >
+                                <span className="text-gold">{letter})</span><span>{o}</span>
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ul>
                     )}
-                    <Button className="w-full" size="sm" onClick={() => startMock(t)}>
-                      <Play className="h-3.5 w-3.5 mr-1" /> {attempted ? "Log new attempt" : "Start test"}
-                    </Button>
+                    <div className="mt-3 flex items-center gap-2">
+                      <Button size="sm" variant="outline" onClick={() => setRevealed((r) => ({ ...r, [i]: !r[i] }))}>
+                        {isRevealed ? "Hide answer" : "Reveal answer"}
+                      </Button>
+                      {isRevealed && m.answer && (
+                        <span className="text-sm text-gold">Correct: {m.answer}</span>
+                      )}
+                    </div>
+                    {isRevealed && m.explanation && (
+                      <div className="mt-2 rounded-md bg-muted/40 p-3 text-sm whitespace-pre-wrap">{m.explanation}</div>
+                    )}
                   </CardContent>
                 </Card>
               );
             })}
           </div>
-        </TabsContent>
-      </Tabs>
+
+          <div className="flex items-center justify-between pt-2">
+            <Button variant="outline" onClick={prev} disabled={pageIdx === 0 || loading}>← Previous</Button>
+            <div className="text-xs text-muted-foreground">
+              Answered {Object.keys(answers).filter((k) => k.startsWith(`${pageIdx}-`)).length} / {currentPage.length}
+            </div>
+            <Button onClick={next} disabled={loading}>
+              {loading ? <><Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> Generating…</> : <>Next 20 →</>}
+            </Button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
