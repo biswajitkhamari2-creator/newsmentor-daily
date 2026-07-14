@@ -56,18 +56,18 @@ function AppSidebar() {
   const dueLabel = tasks.find((t) => !t.done)?.title ?? "Add your first task";
 
   return (
-    <Sidebar collapsible="icon" className="border-r-0">
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="border-b border-sidebar-border">
-        <Link to="/" className="flex items-center gap-2.5 px-2 py-2">
-          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-gold text-gold-foreground font-serif text-lg font-semibold">
+        <Link to="/" className="flex items-center gap-2.5 px-2 py-3">
+          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground font-serif italic text-lg">
             U
           </div>
           {!collapsed && (
             <div className="min-w-0">
-              <div className="font-serif text-lg leading-none text-sidebar-foreground">
-                UPSC Hero
+              <div className="font-serif italic text-lg leading-none text-sidebar-foreground">
+                UPSC <span className="text-primary">Hero</span>
               </div>
-              <div className="text-[10px] uppercase tracking-[0.18em] text-gold/80 mt-1">
+              <div className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground mt-1.5">
                 by Biswajit
               </div>
             </div>
@@ -75,15 +75,15 @@ function AppSidebar() {
         </Link>
       </SidebarHeader>
 
-      <SidebarContent className="px-1">
+      <SidebarContent className="px-2 py-4">
         <SidebarGroup>
           {!collapsed && (
-            <SidebarGroupLabel className="px-2 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-gold/70 flex items-center gap-2 before:h-px before:w-4 before:bg-gold/40 after:h-px after:flex-1 after:bg-sidebar-border/60">
+            <SidebarGroupLabel className="px-2 pb-3 text-[10px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">
               Workspace
             </SidebarGroupLabel>
           )}
           <SidebarGroupContent>
-            <SidebarMenu className="gap-0.5">
+            <SidebarMenu className="gap-1">
               {nav.map((item) => {
                 const active = isActive(item.url);
                 return (
@@ -92,16 +92,34 @@ function AppSidebar() {
                       asChild
                       isActive={active}
                       tooltip={item.title}
-                      className="group relative h-9 rounded-md data-[active=true]:bg-gradient-to-r data-[active=true]:from-gold/15 data-[active=true]:to-transparent data-[active=true]:text-gold hover:bg-sidebar-accent/70 transition-colors"
+                      className={`group h-10 rounded-md transition-colors ${
+                        active
+                          ? "!bg-transparent !text-primary"
+                          : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
+                      }`}
                     >
-                      <Link to={item.url}>
+                      <Link to={item.url} className="flex items-center gap-3 px-2">
                         <span
-                          className={`absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full bg-gold transition-all duration-300 ${
-                            active ? "opacity-100 scale-y-100" : "opacity-0 scale-y-50"
+                          className={`h-2 w-2 shrink-0 rounded-full transition-all ${
+                            active
+                              ? "bg-primary shadow-[0_0_10px_rgba(79,70,229,0.8)]"
+                              : "bg-transparent"
                           }`}
                         />
-                        <item.icon className={`h-4 w-4 shrink-0 transition-colors ${active ? "text-gold" : "text-sidebar-foreground/70 group-hover:text-gold"}`} />
-                        <span className="truncate">{item.title}</span>
+                        <item.icon
+                          className={`h-4 w-4 shrink-0 ${
+                            collapsed ? "" : "hidden"
+                          } ${active ? "text-primary" : ""}`}
+                        />
+                        {!collapsed && (
+                          <span
+                            className={`truncate text-xs uppercase tracking-[0.14em] ${
+                              active ? "font-semibold" : "font-medium"
+                            }`}
+                          >
+                            {item.title}
+                          </span>
+                        )}
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -113,18 +131,22 @@ function AppSidebar() {
       </SidebarContent>
 
 
-      <SidebarFooter className="border-t border-sidebar-border">
+      <SidebarFooter className="border-t border-sidebar-border p-3">
         {!collapsed ? (
-          <div className="rounded-lg bg-sidebar-accent/60 p-3">
-            <div className="flex items-center gap-2 text-gold">
-              <Flame className="h-4 w-4" />
-              <span className="text-xs font-semibold uppercase tracking-wider">Daily streak</span>
+          <div className="rounded-xl border border-sidebar-border bg-card p-4">
+            <div className="flex items-center gap-2 text-primary">
+              <Flame className="h-3.5 w-3.5" />
+              <span className="text-[10px] font-bold uppercase tracking-[0.22em]">Daily streak</span>
             </div>
-            <div className="mt-1 font-serif text-2xl text-sidebar-foreground">{streak} {streak === 1 ? "day" : "days"}</div>
-            <div className="text-[11px] text-sidebar-foreground/70 truncate">{streak === 0 ? "Complete a task to start your streak." : `Next up: ${dueLabel}`}</div>
+            <div className="mt-2 font-serif text-2xl text-sidebar-foreground leading-none">
+              {streak} <span className="text-sm text-muted-foreground">{streak === 1 ? "day" : "days"}</span>
+            </div>
+            <div className="mt-2 text-[11px] text-muted-foreground truncate">
+              {streak === 0 ? "Complete a task to start your streak." : `Next up: ${dueLabel}`}
+            </div>
           </div>
         ) : (
-          <div className="grid h-9 w-9 place-items-center rounded-lg bg-sidebar-accent/60 text-gold">
+          <div className="grid h-9 w-9 place-items-center rounded-lg bg-sidebar-accent/60 text-primary">
             <Flame className="h-4 w-4" />
           </div>
         )}
