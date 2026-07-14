@@ -11,12 +11,13 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Collapsible, CollapsibleContent, CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronDown, Timer, CheckCircle2, Play, Search, RefreshCw, AlertCircle, Radio, Sparkles, Loader2 } from "lucide-react";
+import { ChevronDown, Timer, CheckCircle2, Play, Search, RefreshCw, AlertCircle, Radio, Sparkles, Loader2, Archive, Trash2, BookmarkCheck } from "lucide-react";
 import { pyqs, mockTests } from "@/data/mock";
 import { fetchMcqs, fetchMains, type LiveMcq, type LiveMains } from "@/lib/api";
 import { generateMainsQuestions } from "@/lib/mains.functions";
 import { generatePrelimsMcqs } from "@/lib/mcqs.functions";
 import { useServerFn } from "@tanstack/react-start";
+import { useMainsArchive, type ArchivedQuestion } from "@/hooks/useMainsArchive";
 
 export const Route = createFileRoute("/pyq")({
   head: () => ({
@@ -56,6 +57,7 @@ function PyqPage() {
       <Tabs defaultValue="generator">
         <TabsList>
           <TabsTrigger value="generator"><Sparkles className="h-3.5 w-3.5 mr-1" /> Mains Generator</TabsTrigger>
+          <TabsTrigger value="archive"><Archive className="h-3.5 w-3.5 mr-1" /> Archive</TabsTrigger>
           <TabsTrigger value="pyq">PYQ Bank</TabsTrigger>
           <TabsTrigger value="mock">Mock Tests</TabsTrigger>
         </TabsList>
@@ -63,6 +65,11 @@ function PyqPage() {
         <TabsContent value="generator" className="mt-4">
           <MainsGenerator />
         </TabsContent>
+
+        <TabsContent value="archive" className="mt-4">
+          <MainsArchivePanel />
+        </TabsContent>
+
 
         <TabsContent value="pyq" className="mt-4 space-y-4">
           <Card className="shadow-sm">
@@ -311,6 +318,7 @@ type GeneratedQ = {
 
 function MainsGenerator() {
   const generate = useServerFn(generateMainsQuestions);
+  const archive = useMainsArchive();
   const [topic, setTopic] = useState("");
   const [count, setCount] = useState("4");
   const [questions, setQuestions] = useState<GeneratedQ[] | null>(null);
@@ -322,7 +330,10 @@ function MainsGenerator() {
     setLoading(true); setError(null); setQuestions(null);
     try {
       const out = await generate({ data: { topic: topic.trim(), count: Number(count) } });
-      setQuestions(out.questions as GeneratedQ[]);
+      const qs = out.questions as GeneratedQ[];
+      setQuestions(qs);
+      // auto-archive every generated question
+      archive.addMany(qs.map((q) => ({ ...q, topic: topic.trim() })));
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Failed to generate";
       if (msg.includes("429")) setError("Rate limit hit. Please retry in a moment.");
@@ -331,6 +342,7 @@ function MainsGenerator() {
     } finally {
       setLoading(false);
     }
+
   };
 
   const suggestions = ["Cooperative federalism", "Climate change & India", "Ethics in public service", "Green Hydrogen Mission", "India-EU FTA"];
@@ -452,3 +464,116 @@ function MainsGenerator() {
     </div>
   );
 }
+
+function MainsArchivePanel() {
+  const { items, remove, clear, ready } = useMainsArchive();
+  const [q, setQ] = useState("");
+  const [paperFilter, setPaperFilter] = useState("All");
+
+  const paperOptions = ["All", ...Array.from(new Set(items.map((i) => i.paper)))];
+  const filtered = items.filter(
+    (it) =>
+      (paperFilter === "All" || it.paper === paperFilter) &&
+      (q === "" ||
+        it.question.toLowerCase().includes(q.toLowerCase()) ||
+        it.topic.toLowerCase().includes(q.toLowerCase()) ||
+        it.id.toLowerCase().includes(q.toLowerCase())),
+  );
+
+  if (!ready) return null;
+
+  if (items.length === 0) {
+    return (
+      <Card className="shadow-sm border-dashed">
+        <CardContent className="p-8 text-center text-sm text-muted-foreground">
+          <Archive className="h-6 w-6 mx-auto mb-2 opacity-60" />
+          Your archive is empty. Generated Mains questions and model answers will be saved here automatically.
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <Card className="shadow-sm">
+        <CardContent className="p-4 flex flex-wrap gap-3 items-center">
+          <div className="relative flex-1 min-w-[220px]">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input placeholder="Search archive by topic, ID or question…" value={q} onChange={(e) => setQ(e.target.value)} className="pl-9" />
+          </div>
+          <Select value={paperFilter} onValueChange={setPaperFilter}>
+            <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+            <SelectContent>{paperOptions.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+          </Select>
+          <Badge variant="outline" className="border-gold/50 text-gold">
+            <BookmarkCheck className="h-3 w-3 mr-1" /> {items.length} saved
+          </Badge>
+          <Button size="sm" variant="ghost" onClick={() => { if (confirm("Clear entire archive?")) clear(); }}>
+            <Trash2 className="h-3.5 w-3.5 mr-1" /> Clear all
+          </Button>
+        </CardContent>
+      </Card>
+
+      <div className="space-y-3">
+        {filtered.map((it, i) => (
+          <Card key={it.id} className="shadow-sm">
+            <CardContent className="p-5">
+              <div className="flex flex-wrap gap-2 items-center">
+                <Badge className="bg-primary text-primary-foreground">{it.paper}</Badge>
+                <Badge variant="outline">{it.marks} marks</Badge>
+                <Badge variant="outline" className="border-gold/50 text-gold">{it.wordLimit} words</Badge>
+                <Badge variant="outline" className="font-mono text-[10px] tracking-wider">{it.id}</Badge>
+                <Badge variant="secondary" className="text-[10px]">Topic: {it.topic}</Badge>
+                <span className="text-[10px] text-muted-foreground ml-auto">
+                  {new Date(it.savedAt).toLocaleString()}
+                </span>
+              </div>
+              <p className="mt-3 font-serif text-lg leading-snug">{it.question}</p>
+              <Tabs defaultValue={`aq-${i}`} className="mt-4">
+                <TabsList>
+                  <TabsTrigger value={`aq-${i}`}>Question</TabsTrigger>
+                  <TabsTrigger value={`ah-${i}`}>Hint & Key points</TabsTrigger>
+                  <TabsTrigger value={`aa-${i}`}>Model Answer</TabsTrigger>
+                </TabsList>
+                <TabsContent value={`aq-${i}`} className="mt-3">
+                  <div className="rounded-md bg-muted/40 p-3 text-sm text-muted-foreground">
+                    Attempt in <strong>{it.wordLimit} words</strong>. Reference ID: <span className="font-mono text-foreground">{it.id}</span>.
+                  </div>
+                </TabsContent>
+                <TabsContent value={`ah-${i}`} className="mt-3 space-y-3">
+                  <div className="rounded-md border border-gold/40 bg-gold/5 p-3 text-sm">
+                    <span className="font-semibold text-gold">Hint · </span>{it.hint}
+                  </div>
+                  <div className="rounded-md bg-muted/40 p-3 text-sm">
+                    <div className="font-semibold mb-1">Key points</div>
+                    <ul className="list-disc pl-5 space-y-1">
+                      {it.keyPoints.map((kp, j) => <li key={j}>{kp}</li>)}
+                    </ul>
+                  </div>
+                </TabsContent>
+                <TabsContent value={`aa-${i}`} className="mt-3">
+                  <div className="rounded-md border border-primary/30 bg-primary/5 p-4 text-sm whitespace-pre-line leading-relaxed">
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="font-semibold text-primary">Model Answer</span>
+                      <span className="font-mono text-[10px] text-muted-foreground">{it.id}</span>
+                    </div>
+                    {it.modelAnswer}
+                  </div>
+                </TabsContent>
+              </Tabs>
+              <div className="mt-3 flex justify-end">
+                <Button size="sm" variant="ghost" onClick={() => remove(it.id)}>
+                  <Trash2 className="h-3.5 w-3.5 mr-1" /> Remove
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+        {filtered.length === 0 && (
+          <div className="text-center py-10 text-sm text-muted-foreground">No archived questions match your filters.</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
