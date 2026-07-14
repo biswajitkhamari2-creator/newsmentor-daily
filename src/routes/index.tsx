@@ -49,12 +49,7 @@ const continueLearning = [
   { title: "Fiscal Federalism", subject: "GS-II · Polity", progress: 62, mins: 18, difficulty: "Medium" },
   { title: "Monsoon Dynamics", subject: "GS-I · Geography", progress: 34, mins: 24, difficulty: "Hard" },
 ];
-const recentActivity = [
-  { action: "Completed", target: "Editorial: Green H₂ Mission", when: "12 min ago", icon: CheckCircle2 },
-  { action: "Scored 62/100", target: "Mock Test #13", when: "2 hr ago", icon: Award },
-  { action: "Bookmarked", target: "Art. 280 — Finance Commission", when: "4 hr ago", icon: Bookmark },
-  { action: "Wrote answer on", target: "Cooperative Federalism", when: "Yesterday", icon: PenLine },
-];
+const activityIcon = { task: CheckCircle2, attempt: Award, bookmark: Bookmark, note: PenLine } as const;
 
 function FactsRotator() {
   const { data } = useQuery({
