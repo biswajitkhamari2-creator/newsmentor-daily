@@ -206,12 +206,12 @@ export type MockTest = {
 };
 
 export const mockTests: MockTest[] = [
-  { id: "m1", title: "Prelims Full Mock #14", type: "Prelims", questions: 100, duration: "2 hrs", attempted: true, score: 118 },
-  { id: "m2", title: "Polity Sectional — Federalism", type: "Sectional", questions: 40, duration: "45 min", attempted: true, score: 32 },
+  { id: "m1", title: "Prelims Full Mock #14", type: "Prelims", questions: 100, duration: "2 hrs", attempted: false },
+  { id: "m2", title: "Polity Sectional — Federalism", type: "Sectional", questions: 40, duration: "45 min", attempted: false },
   { id: "m3", title: "Prelims Full Mock #15", type: "Prelims", questions: 100, duration: "2 hrs", attempted: false },
   { id: "m4", title: "Mains GS-II — Test 06", type: "Mains", questions: 20, duration: "3 hrs", attempted: false },
   { id: "m5", title: "Economy — Budget & Fiscal Policy", type: "Sectional", questions: 30, duration: "35 min", attempted: false },
-  { id: "m6", title: "Environment Sectional #08", type: "Sectional", questions: 40, duration: "45 min", attempted: true, score: 28 },
+  { id: "m6", title: "Environment Sectional #08", type: "Sectional", questions: 40, duration: "45 min", attempted: false },
 ];
 
 export type MentorMessage = { id: string; role: "user" | "mentor"; text: string };

@@ -18,6 +18,7 @@ import { generateMainsQuestions } from "@/lib/mains.functions";
 import { generatePrelimsMcqs } from "@/lib/mcqs.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { useMainsArchive, type ArchivedQuestion } from "@/hooks/useMainsArchive";
+import { useActivityStore, relativeTime } from "@/hooks/useActivityStore";
 
 export const Route = createFileRoute("/pyq")({
   head: () => ({
@@ -36,6 +37,23 @@ function PyqPage() {
   const [q, setQ] = useState("");
   const [year, setYear] = useState("All");
   const [paper, setPaper] = useState("All");
+  const { attempts, logAttempt } = useActivityStore();
+
+  const maxFor = (t: typeof mockTests[number]) =>
+    t.type === "Prelims" ? t.questions * 2 : t.type === "Mains" ? t.questions * 10 : t.questions;
+
+  const startMock = (t: typeof mockTests[number]) => {
+    const max = maxFor(t);
+    const input = window.prompt(`Log your score for "${t.title}" (out of ${max}):`);
+    if (input === null) return;
+    const score = Number(input);
+    if (!Number.isFinite(score) || score < 0 || score > max) {
+      window.alert(`Please enter a valid number between 0 and ${max}.`);
+      return;
+    }
+    logAttempt({ mockId: t.id, title: t.title, type: t.type, questions: t.questions, score, max });
+  };
+
 
   const filtered = pyqs.filter(
     (p) =>
@@ -125,32 +143,42 @@ function PyqPage() {
 
         <TabsContent value="mock" className="mt-4">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {mockTests.map((t) => (
-              <Card key={t.id} className="hover-lift shadow-sm">
-                <CardHeader className="pb-2">
-                  <div className="flex justify-between items-start">
-                    <Badge variant="outline" className="text-xs">{t.type}</Badge>
-                    {t.attempted && <Badge className="bg-gold text-gold-foreground text-xs"><CheckCircle2 className="h-3 w-3 mr-1" />Done</Badge>}
-                  </div>
-                  <CardTitle className="font-serif text-xl mt-2">{t.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>{t.questions} questions</span>
-                    <span className="flex items-center gap-1"><Timer className="h-3.5 w-3.5" />{t.duration}</span>
-                  </div>
-                  {t.attempted ? (
-                    <div className="text-sm">
-                      <span className="text-muted-foreground">Your score: </span>
-                      <span className="font-serif text-2xl text-gold">{t.score}</span>
-                      <span className="text-muted-foreground"> / {t.questions * 2}</span>
+            {mockTests.map((t) => {
+              const myAttempts = attempts.filter((a) => a.mockId === t.id);
+              const latest = myAttempts[0];
+              const attempted = !!latest;
+              const max = maxFor(t);
+              return (
+                <Card key={t.id} className="hover-lift shadow-sm">
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-start">
+                      <Badge variant="outline" className="text-xs">{t.type}</Badge>
+                      {attempted && <Badge className="bg-gold text-gold-foreground text-xs"><CheckCircle2 className="h-3 w-3 mr-1" />Done</Badge>}
                     </div>
-                  ) : (
-                    <Button className="w-full" size="sm"><Play className="h-3.5 w-3.5 mr-1" /> Start test</Button>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
+                    <CardTitle className="font-serif text-xl mt-2">{t.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex justify-between text-sm text-muted-foreground">
+                      <span>{t.questions} questions</span>
+                      <span className="flex items-center gap-1"><Timer className="h-3.5 w-3.5" />{t.duration}</span>
+                    </div>
+                    {attempted && (
+                      <div className="text-sm">
+                        <span className="text-muted-foreground">Your score: </span>
+                        <span className="font-serif text-2xl text-gold">{latest.score}</span>
+                        <span className="text-muted-foreground"> / {latest.max}</span>
+                        <div className="text-[11px] text-muted-foreground mt-0.5">
+                          {relativeTime(latest.at)}{myAttempts.length > 1 ? ` · ${myAttempts.length} attempts` : ""}
+                        </div>
+                      </div>
+                    )}
+                    <Button className="w-full" size="sm" onClick={() => startMock(t)}>
+                      <Play className="h-3.5 w-3.5 mr-1" /> {attempted ? "Log new attempt" : "Start test"}
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </TabsContent>
       </Tabs>

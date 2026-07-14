@@ -15,6 +15,7 @@ import { AnimatedCounter } from "@/components/AnimatedCounter";
 import { fetchLatestNews } from "@/lib/news.functions";
 import { fetchPrelimsFacts } from "@/lib/facts.functions";
 import { usePlannerStore } from "@/hooks/usePlannerStore";
+import { useActivityStore, relativeTime } from "@/hooks/useActivityStore";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -48,12 +49,7 @@ const continueLearning = [
   { title: "Fiscal Federalism", subject: "GS-II · Polity", progress: 62, mins: 18, difficulty: "Medium" },
   { title: "Monsoon Dynamics", subject: "GS-I · Geography", progress: 34, mins: 24, difficulty: "Hard" },
 ];
-const recentActivity = [
-  { action: "Completed", target: "Editorial: Green H₂ Mission", when: "12 min ago", icon: CheckCircle2 },
-  { action: "Scored 62/100", target: "Mock Test #13", when: "2 hr ago", icon: Award },
-  { action: "Bookmarked", target: "Art. 280 — Finance Commission", when: "4 hr ago", icon: Bookmark },
-  { action: "Wrote answer on", target: "Cooperative Federalism", when: "Yesterday", icon: PenLine },
-];
+const activityIcon = { task: CheckCircle2, attempt: Award, bookmark: Bookmark, note: PenLine } as const;
 
 function FactsRotator() {
   const { data } = useQuery({
@@ -136,6 +132,7 @@ function FactsRotator() {
 
 function Dashboard() {
   const { streak, tasks: plannerTasks, weeklyGoalHrs, syllabus: liveSyllabus, weekDailyHrs, weekHrs } = usePlannerStore();
+  const { attempts, activity } = useActivityStore();
   const done = plannerTasks.filter((t) => t.done).length;
   const totalToday = plannerTasks.length;
   const topics = liveSyllabus.flatMap((p) => p.topics);
@@ -454,38 +451,37 @@ function Dashboard() {
               Live · synced from attempts
             </div>
             <div className="mt-3 space-y-3">
-              {(() => {
-                const attempted = mockTests.filter((m) => m.attempted && typeof m.score === "number");
-                if (attempted.length === 0) {
-                  return <div className="text-sm text-muted-foreground">No mock attempts yet. Start one to see live scores here.</div>;
-                }
-                return attempted.slice(0, 4).map((m, idx) => {
-                  const max = m.type === "Prelims" ? m.questions * 2 : m.type === "Mains" ? m.questions * 10 : m.questions;
-                  const score = m.score!;
-                  const pct = Math.min(100, (score / max) * 100);
-                  const prev = attempted[idx + 1];
-                  const prevPct = prev && typeof prev.score === "number"
-                    ? (prev.score / (prev.type === "Prelims" ? prev.questions * 2 : prev.type === "Mains" ? prev.questions * 10 : prev.questions)) * 100
-                    : pct;
+              {attempts.length === 0 ? (
+                <div className="text-sm text-muted-foreground">
+                  No mock attempts yet. <Link to="/pyq" className="underline underline-offset-4 hover:text-gold">Log an attempt</Link> to see live scores here.
+                </div>
+              ) : (
+                attempts.slice(0, 4).map((m, idx) => {
+                  const pct = Math.min(100, (m.score / m.max) * 100);
+                  const prev = attempts[idx + 1];
+                  const prevPct = prev ? (prev.score / prev.max) * 100 : pct;
                   const delta = Math.round(pct - prevPct);
                   return (
                     <div key={m.id}>
                       <div className="flex justify-between text-sm mb-1.5 gap-2">
                         <span className="truncate">{m.title}</span>
                         <span className="tabular-nums font-medium shrink-0">
-                          {score}/{max}
-                          <span className={`ml-2 text-xs ${delta >= 0 ? "text-success" : "text-destructive"}`}>
-                            {delta >= 0 ? "▲" : "▼"} {Math.abs(delta)}
-                          </span>
+                          {m.score}/{m.max}
+                          {idx < attempts.length - 1 && (
+                            <span className={`ml-2 text-xs ${delta >= 0 ? "text-success" : "text-destructive"}`}>
+                              {delta >= 0 ? "▲" : "▼"} {Math.abs(delta)}
+                            </span>
+                          )}
                         </span>
                       </div>
                       <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                         <div className="h-full gradient-emerald animate-bar" style={{ width: `${pct}%` }} />
                       </div>
+                      <div className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground">{relativeTime(m.at)}</div>
                     </div>
                   );
-                });
-              })()}
+                })
+              )}
             </div>
           </BentoCard>
 
@@ -508,24 +504,33 @@ function Dashboard() {
             </div>
           </BentoCard>
 
-          {/* Recent activity */}
+          {/* Recent activity — live from planner + attempts */}
           <BentoCard className="lg:col-span-3" delay={640}>
             <BentoHeader eyebrow="Latest" title="Recent activity" icon={Activity} />
             <div className="mt-4 space-y-3">
-              {recentActivity.map((a, i) => (
-                <div key={i} className="flex items-start gap-3">
-                  <div className="grid h-8 w-8 place-items-center rounded-lg bg-muted text-muted-foreground shrink-0">
-                    <a.icon className="h-4 w-4" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm">
-                      <span className="text-muted-foreground">{a.action}</span>{" "}
-                      <span className="font-medium">{a.target}</span>
-                    </div>
-                    <div className="text-xs text-muted-foreground">{a.when}</div>
-                  </div>
+              {activity.length === 0 ? (
+                <div className="text-sm text-muted-foreground">
+                  No activity yet. Tick a task in your <Link to="/planner" className="underline underline-offset-4 hover:text-gold">planner</Link> or log a mock attempt.
                 </div>
-              ))}
+              ) : (
+                activity.slice(0, 5).map((a) => {
+                  const Icon = activityIcon[a.kind] ?? Activity;
+                  return (
+                    <div key={a.id} className="flex items-start gap-3">
+                      <div className="grid h-8 w-8 place-items-center rounded-lg bg-muted text-muted-foreground shrink-0">
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm">
+                          <span className="text-muted-foreground">{a.action}</span>{" "}
+                          <span className="font-medium">{a.target}</span>
+                        </div>
+                        <div className="text-xs text-muted-foreground">{relativeTime(a.at)}</div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </BentoCard>
 
