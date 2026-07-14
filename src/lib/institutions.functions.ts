@@ -227,8 +227,10 @@ export const fetchInstitutionalNews = createServerFn({ method: "GET" })
     const r = (raw ?? {}) as { range?: "1d" | "7d" };
     return { range: r.range === "7d" ? "7d" : "1d" } as { range: "1d" | "7d" };
   })
-  .handler(async (): Promise<InstitutionBucket[]> => {
+  .handler(async ({ data }): Promise<InstitutionBucket[]> => {
     const now = Date.now();
+    const windowMs = data.range === "7d" ? 7 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
+    const oldestAllowed = now - windowMs;
 
     const results = await Promise.all(
       SOURCES.map(async (s) => {
@@ -238,12 +240,12 @@ export const fetchInstitutionalNews = createServerFn({ method: "GET" })
         } catch {
           items = [];
         }
-        // Drop only future-dated / invalid items — always show the source's latest.
+        // Keep only genuinely fresh items for the selected Daily/Weekly window.
         const filtered = items.filter((it) => {
-          if (!it.pubDate) return true;
+          if (!it.pubDate) return false;
           const t = new Date(it.pubDate).getTime();
-          if (!t) return true;
-          return t <= now + 24 * 60 * 60 * 1000;
+          if (!Number.isFinite(t)) return false;
+          return t >= oldestAllowed && t <= now + 24 * 60 * 60 * 1000;
         });
         // Freshest first.
         filtered.sort((a, b) => {
