@@ -83,13 +83,36 @@ export function usePlannerStore() {
   };
 
   const toggleTask = useCallback((id: string) => {
-    updateDay((tasks) => tasks.map((t) => (t.id === id ? { ...t, done: !t.done } : t)));
+    let toggled: Task | undefined;
+    updateDay((tasks) => tasks.map((t) => {
+      if (t.id !== id) return t;
+      const next = { ...t, done: !t.done };
+      toggled = next;
+      return next;
+    }));
+    // log activity (only when marking done, not un-done)
+    if (typeof window !== "undefined" && toggled?.done) {
+      try {
+        const KEY_A = "newsmentor.activity.v1";
+        const raw = localStorage.getItem(KEY_A);
+        const cur = raw ? JSON.parse(raw) : { attempts: [], activity: [] };
+        const event = {
+          id: crypto.randomUUID(),
+          kind: "task",
+          action: "Completed",
+          target: `${toggled.title}${toggled.module ? ` · ${toggled.module}` : ""}`,
+          at: Date.now(),
+        };
+        cur.activity = [event, ...(cur.activity ?? [])].slice(0, 200);
+        localStorage.setItem(KEY_A, JSON.stringify(cur));
+      } catch { /* noop */ }
+    }
     // update streak
     setState((s) => {
       const t = todayISO();
       const day = s.days[t];
       if (!day) return s;
-      const anyDone = day.tasks.some((x) => x.done) || true; // this toggle may create one
+      const anyDone = day.tasks.some((x) => x.done) || true;
       if (!anyDone) return s;
       if (s.lastActiveDate === t) return s;
       const y = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
