@@ -102,6 +102,60 @@ async function resolveGoogleNews(url: string): Promise<string> {
   }
 }
 
+async function fetchViaJinaReader(url: string): Promise<{ title: string; paragraphs: string[] } | null> {
+  // r.jina.ai is a free reader proxy that renders JS and strips boilerplate,
+  // returning clean markdown. No API key required.
+  try {
+    const readerUrl = `https://r.jina.ai/${url}`;
+    const res = await fetch(readerUrl, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 UPSCHeroByBiswajit/1.0",
+        Accept: "text/plain, text/markdown",
+        "X-Return-Format": "markdown",
+      },
+      redirect: "follow",
+    });
+    if (!res.ok) return null;
+    const md = await res.text();
+    if (!md || md.length < 200) return null;
+
+    // Reader returns a small header block: "Title: ...\nURL Source: ...\n\nMarkdown Content:\n..."
+    let title = "";
+    const titleMatch = md.match(/^Title:\s*(.+)$/m);
+    if (titleMatch) title = titleMatch[1].trim();
+    const bodyStart = md.indexOf("Markdown Content:");
+    const body = bodyStart >= 0 ? md.slice(bodyStart + "Markdown Content:".length) : md;
+
+    const paragraphs: string[] = [];
+    for (const rawLine of body.split(/\n+/)) {
+      let line = rawLine.trim();
+      if (!line) continue;
+      // strip markdown images and standalone links
+      if (/^!\[/.test(line)) continue;
+      if (/^\[.*\]\(.*\)\s*$/.test(line)) continue;
+      // remove leading list bullets & blockquote markers
+      line = line.replace(/^([*+\-]|\d+\.|>)\s+/, "");
+      // inline: [text](url) -> text
+      line = line.replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1");
+      // strip emphasis / code markers
+      line = line.replace(/[*_`]{1,3}([^*_`]+)[*_`]{1,3}/g, "$1");
+      if (/^#{1,6}\s+/.test(line)) {
+        const t = line.replace(/^#{1,6}\s+/, "").trim();
+        if (t) paragraphs.push(`## ${t}`);
+        continue;
+      }
+      if (line.length < 40) continue;
+      if (/^(subscribe|share this|comments?|read more|advertisement|related|tags?|follow us|sign in|log in|newsletter)/i.test(line)) continue;
+      paragraphs.push(line);
+      if (paragraphs.length > 80) break;
+    }
+    if (paragraphs.length < 2) return null;
+    return { title, paragraphs };
+  } catch {
+    return null;
+  }
+}
+
 export const fetchArticleDetail = createServerFn({ method: "GET" })
   .inputValidator((raw: unknown) => {
     const r = (raw ?? {}) as { url?: string };
@@ -114,39 +168,66 @@ export const fetchArticleDetail = createServerFn({ method: "GET" })
       url = await resolveGoogleNews(url);
     }
 
-    const res = await fetch(url, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        Accept: "text/html,application/xhtml+xml",
-      },
-      redirect: "follow",
-    });
-    const finalUrl = res.url || url;
-    if (!res.ok) {
-      return {
-        title: "",
-        paragraphs: [`Couldn't load the source article (HTTP ${res.status}).`],
-        finalUrl,
-      };
+    let finalUrl = url;
+    let html = "";
+    let httpStatus = 0;
+    try {
+      const res = await fetch(url, {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          Accept: "text/html,application/xhtml+xml",
+        },
+        redirect: "follow",
+      });
+      finalUrl = res.url || url;
+      httpStatus = res.status;
+      if (res.ok) html = await res.text();
+    } catch {
+      // network error — will fall through to reader
     }
-    const html = await res.text();
 
-    const ogTitle = pickMeta(html, "og:title");
-    const ogSite = pickMeta(html, "og:site_name");
-    const ogImage = pickMeta(html, "og:image");
-    const titleTag = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
-    const title = ogTitle || (titleTag ? decode(titleTag[1]).trim() : "");
+    let ogTitle = "";
+    let ogSite = "";
+    let ogImage = "";
+    let ogDesc = "";
+    let title = "";
+    let paragraphs: string[] = [];
 
-    const paragraphs = extractParagraphs(html);
+    if (html) {
+      ogTitle = pickMeta(html, "og:title");
+      ogSite = pickMeta(html, "og:site_name");
+      ogImage = pickMeta(html, "og:image");
+      ogDesc = pickMeta(html, "og:description") || pickMeta(html, "description");
+      const titleTag = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+      title = ogTitle || (titleTag ? decode(titleTag[1]).trim() : "");
+      paragraphs = extractParagraphs(html);
+    }
+
+    // Fallback 1: reader proxy (handles JS-rendered / anti-bot / soft-paywall)
+    if (paragraphs.length < 3) {
+      const via = await fetchViaJinaReader(finalUrl);
+      if (via) {
+        if (!title && via.title) title = via.title;
+        paragraphs = via.paragraphs;
+      }
+    }
+
+    // Fallback 2: og:description as a single readable paragraph
+    if (paragraphs.length === 0 && ogDesc) {
+      paragraphs = [ogDesc];
+    }
+
+    if (paragraphs.length === 0) {
+      const reason = httpStatus && httpStatus !== 200
+        ? `Couldn't load the source article (HTTP ${httpStatus}).`
+        : "This source doesn't expose readable article text (likely paywalled or JS-rendered). Open the original link below to read it.";
+      paragraphs = [reason];
+    }
 
     return {
       title,
-      paragraphs: paragraphs.length
-        ? paragraphs
-        : [
-            "This source doesn't expose readable article text (likely paywalled or JS-rendered).",
-          ],
+      paragraphs,
       finalUrl,
       siteName: ogSite || undefined,
       image: ogImage || undefined,
