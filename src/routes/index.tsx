@@ -37,7 +37,7 @@ const ticker = [
   "Bharat NCAP rates 3 new SUVs",
 ];
 
-const weeklyHours = [3.2, 4.1, 5.5, 4.8, 6.2, 5.9, 4.2];
+
 const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const upcomingTests = [
   { name: "Prelims Mock #14", subject: "GS-I · Full length", date: "Wed, 15 Jul", difficulty: "Hard" },
