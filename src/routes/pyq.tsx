@@ -79,6 +79,7 @@ function PyqPage() {
           <TabsTrigger value="archive"><Archive className="h-3.5 w-3.5 mr-1" /> Archive</TabsTrigger>
           <TabsTrigger value="pyq">PYQ Bank</TabsTrigger>
           <TabsTrigger value="mock">Mock Tests</TabsTrigger>
+          <TabsTrigger value="bookmarks"><Bookmark className="h-3.5 w-3.5 mr-1" /> Bookmarks</TabsTrigger>
         </TabsList>
 
         <TabsContent value="generator" className="mt-4">
@@ -87,6 +88,10 @@ function PyqPage() {
 
         <TabsContent value="archive" className="mt-4">
           <MainsArchivePanel />
+        </TabsContent>
+
+        <TabsContent value="bookmarks" className="mt-4">
+          <BookmarkedMcqsPanel />
         </TabsContent>
 
 
