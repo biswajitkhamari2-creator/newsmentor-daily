@@ -57,6 +57,7 @@ function PyqPage() {
       <Tabs defaultValue="generator">
         <TabsList>
           <TabsTrigger value="generator"><Sparkles className="h-3.5 w-3.5 mr-1" /> Mains Generator</TabsTrigger>
+          <TabsTrigger value="archive"><Archive className="h-3.5 w-3.5 mr-1" /> Archive</TabsTrigger>
           <TabsTrigger value="pyq">PYQ Bank</TabsTrigger>
           <TabsTrigger value="mock">Mock Tests</TabsTrigger>
         </TabsList>
@@ -64,6 +65,11 @@ function PyqPage() {
         <TabsContent value="generator" className="mt-4">
           <MainsGenerator />
         </TabsContent>
+
+        <TabsContent value="archive" className="mt-4">
+          <MainsArchivePanel />
+        </TabsContent>
+
 
         <TabsContent value="pyq" className="mt-4 space-y-4">
           <Card className="shadow-sm">
