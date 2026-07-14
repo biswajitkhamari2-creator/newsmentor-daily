@@ -110,29 +110,44 @@ async function fetchVisionIAS(): Promise<InstitutionItem[]> {
   return items;
 }
 
+const MONTHS: Record<string, string> = {
+  jan: "01", feb: "02", mar: "03", apr: "04", may: "05", jun: "06",
+  jul: "07", aug: "08", sep: "09", oct: "10", nov: "11", dec: "12",
+};
+function parseDMY(s: string): string | undefined {
+  // Matches "04 May 2026" or "4 May 2026"
+  const m = s.match(/(\d{1,2})\s+([A-Za-z]{3,9})\s+(\d{4})/);
+  if (!m) return undefined;
+  const mon = MONTHS[m[2].slice(0, 3).toLowerCase()];
+  if (!mon) return undefined;
+  const dd = m[1].padStart(2, "0");
+  return `${m[3]}-${mon}-${dd}T00:00:00Z`;
+}
+
 async function fetchDrishti(): Promise<InstitutionItem[]> {
   const html = await fetchText(
     "https://www.drishtiias.com/daily-updates/daily-news-analysis",
   );
-  const re =
-    /href="(https:\/\/www\.drishtiias\.com\/daily-updates\/daily-news-analysis\/[a-z0-9-]+)"/g;
+  // Pair each article link with the nearest following `<li class="date">…</li>`
+  const re = new RegExp(
+    'href="(https://www\\.drishtiias\\.com/daily-updates/daily-news-analysis/[a-z0-9-]+)"' +
+      '[\\s\\S]{0,4000}?<li class="date">([^<]+)</li>',
+    "g",
+  );
   const seen = new Set<string>();
   const items: InstitutionItem[] = [];
   let m: RegExpExecArray | null;
-  while ((m = re.exec(html)) !== null && items.length < 12) {
+  while ((m = re.exec(html)) !== null && items.length < 20) {
     const url = m[1];
     if (url.endsWith("daily-news-analysis")) continue;
     if (seen.has(url)) continue;
     seen.add(url);
     const slug = url.split("/").pop() || "";
-    // Drishti slugs often end with DD-MM-YYYY — parse for freshness sort.
-    const dm = slug.match(/(\d{2})-(\d{2})-(\d{4})$/);
-    const pubDate = dm ? `${dm[3]}-${dm[2]}-${dm[1]}T00:00:00Z` : undefined;
     items.push({
       id: `drishti-${items.length}`,
-      title: titleFromSlug(slug.replace(/-\d{2}-\d{2}-\d{4}$/, "").replace(/-\d+$/, "")),
+      title: titleFromSlug(slug.replace(/-\d+$/, "")),
       link: url,
-      pubDate,
+      pubDate: parseDMY(m[2].trim()),
       summary: "",
       bullets: [],
       source: "Drishti IAS",
@@ -212,11 +227,8 @@ export const fetchInstitutionalNews = createServerFn({ method: "GET" })
     const r = (raw ?? {}) as { range?: "1d" | "7d" };
     return { range: r.range === "7d" ? "7d" : "1d" } as { range: "1d" | "7d" };
   })
-  .handler(async ({ data }): Promise<InstitutionBucket[]> => {
-    const range = data.range;
+  .handler(async (): Promise<InstitutionBucket[]> => {
     const now = Date.now();
-    const cutoff =
-      range === "1d" ? now - 2 * 24 * 60 * 60 * 1000 : now - 8 * 24 * 60 * 60 * 1000;
 
     const results = await Promise.all(
       SOURCES.map(async (s) => {
@@ -226,15 +238,14 @@ export const fetchInstitutionalNews = createServerFn({ method: "GET" })
         } catch {
           items = [];
         }
-        // Drop items older than cutoff (or with future/invalid dates).
+        // Drop only future-dated / invalid items — always show the source's latest.
         const filtered = items.filter((it) => {
           if (!it.pubDate) return true;
           const t = new Date(it.pubDate).getTime();
           if (!t) return true;
-          if (t > now + 24 * 60 * 60 * 1000) return false; // guard: no future-dated items
-          return t >= cutoff;
+          return t <= now + 24 * 60 * 60 * 1000;
         });
-        // Freshest first: items with pubDate sort by date desc; undated keep source order after.
+        // Freshest first.
         filtered.sort((a, b) => {
           const ta = a.pubDate ? new Date(a.pubDate).getTime() : 0;
           const tb = b.pubDate ? new Date(b.pubDate).getTime() : 0;
