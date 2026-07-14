@@ -4,8 +4,10 @@ import { z } from "zod";
 import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 
 const Input = z.object({
-  topic: z.string().min(2).max(200).default("current affairs"),
-  count: z.number().int().min(1).max(10).default(5),
+  topic: z.string().min(2).max(400).default("current affairs"),
+  count: z.number().int().min(1).max(20).default(5),
+  seed: z.string().max(80).optional(),
+  avoid: z.array(z.string()).max(200).optional(),
 });
 
 export const generatePrelimsMcqs = createServerFn({ method: "POST" })
