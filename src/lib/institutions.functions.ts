@@ -225,16 +225,16 @@ const SOURCES: Array<{
       parseRss(await fetchText("https://forumias.com/blog/feed/"), "ForumIAS", "forumias"),
   },
   {
-    key: "pib",
-    name: "PIB India",
-    tagline: "Government Press Releases",
-    site: "https://pib.gov.in",
+    key: "thehindu",
+    name: "The Hindu — National",
+    tagline: "India's National News (RSS)",
+    site: "https://www.thehindu.com/news/national/",
     accent: "from-yellow-500/20 to-amber-500/5",
     load: async () =>
       parseRss(
-        await fetchText("https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=3"),
-        "PIB India",
-        "pib",
+        await fetchText("https://www.thehindu.com/news/national/feeder/default.rss"),
+        "The Hindu",
+        "thehindu",
       ),
   },
 ];
@@ -249,6 +249,13 @@ export const fetchInstitutionalNews = createServerFn({ method: "GET" })
     const windowMs = data.range === "7d" ? 7 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
     const oldestAllowed = now - windowMs;
 
+    const sortDesc = (arr: InstitutionItem[]) =>
+      [...arr].sort((a, b) => {
+        const ta = a.pubDate ? new Date(a.pubDate).getTime() : 0;
+        const tb = b.pubDate ? new Date(b.pubDate).getTime() : 0;
+        return tb - ta;
+      });
+
     const results = await Promise.all(
       SOURCES.map(async (s) => {
         let items: InstitutionItem[] = [];
@@ -257,26 +264,24 @@ export const fetchInstitutionalNews = createServerFn({ method: "GET" })
         } catch {
           items = [];
         }
-        // Keep only genuinely fresh items for the selected Daily/Weekly window.
-        const filtered = items.filter((it) => {
+        // Keep only genuinely fresh items for the selected window.
+        const fresh = items.filter((it) => {
           if (!it.pubDate) return false;
           const t = new Date(it.pubDate).getTime();
           if (!Number.isFinite(t)) return false;
           return t >= oldestAllowed && t <= now + 24 * 60 * 60 * 1000;
         });
-        // Freshest first.
-        filtered.sort((a, b) => {
-          const ta = a.pubDate ? new Date(a.pubDate).getTime() : 0;
-          const tb = b.pubDate ? new Date(b.pubDate).getTime() : 0;
-          return tb - ta;
-        });
+        // Fallback: if the source hasn't published within the window
+        // (e.g. IASbaba publishes less frequently), show its latest items
+        // instead of hiding the bucket entirely.
+        const picked = fresh.length > 0 ? sortDesc(fresh) : sortDesc(items);
         return {
           key: s.key,
           name: s.name,
           tagline: s.tagline,
           site: s.site,
           accent: s.accent,
-          items: filtered.slice(0, 8),
+          items: picked.slice(0, 8),
         } satisfies InstitutionBucket;
       }),
     );
