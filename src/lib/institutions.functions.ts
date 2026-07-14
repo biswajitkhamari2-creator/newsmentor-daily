@@ -214,8 +214,9 @@ export const fetchInstitutionalNews = createServerFn({ method: "GET" })
   })
   .handler(async ({ data }): Promise<InstitutionBucket[]> => {
     const range = data.range;
+    const now = Date.now();
     const cutoff =
-      range === "1d" ? Date.now() - 2 * 24 * 60 * 60 * 1000 : Date.now() - 8 * 24 * 60 * 60 * 1000;
+      range === "1d" ? now - 2 * 24 * 60 * 60 * 1000 : now - 8 * 24 * 60 * 60 * 1000;
 
     const results = await Promise.all(
       SOURCES.map(async (s) => {
@@ -225,11 +226,19 @@ export const fetchInstitutionalNews = createServerFn({ method: "GET" })
         } catch {
           items = [];
         }
-        // Filter by date when we have one
+        // Drop items older than cutoff (or with future/invalid dates).
         const filtered = items.filter((it) => {
           if (!it.pubDate) return true;
           const t = new Date(it.pubDate).getTime();
-          return !t || t >= cutoff;
+          if (!t) return true;
+          if (t > now + 24 * 60 * 60 * 1000) return false; // guard: no future-dated items
+          return t >= cutoff;
+        });
+        // Freshest first: items with pubDate sort by date desc; undated keep source order after.
+        filtered.sort((a, b) => {
+          const ta = a.pubDate ? new Date(a.pubDate).getTime() : 0;
+          const tb = b.pubDate ? new Date(b.pubDate).getTime() : 0;
+          return tb - ta;
         });
         return {
           key: s.key,
