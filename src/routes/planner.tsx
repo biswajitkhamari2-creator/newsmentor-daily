@@ -171,6 +171,9 @@ function SchedulePage() {
         ))}
       </div>
 
+      {/* Today's Diary */}
+      <TodayDiary />
+
       {/* Syllabus Tracker */}
       <SyllabusTracker />
 
