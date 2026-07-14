@@ -75,25 +75,43 @@ function AppSidebar() {
         </Link>
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className="px-1">
         <SidebarGroup>
-          <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+          {!collapsed && (
+            <SidebarGroupLabel className="px-2 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-gold/70 flex items-center gap-2 before:h-px before:w-4 before:bg-gold/40 after:h-px after:flex-1 after:bg-sidebar-border/60">
+              Workspace
+            </SidebarGroupLabel>
+          )}
           <SidebarGroupContent>
-            <SidebarMenu>
-              {nav.map((item) => (
-                <SidebarMenuItem key={item.url}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
-                    <Link to={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+            <SidebarMenu className="gap-0.5">
+              {nav.map((item) => {
+                const active = isActive(item.url);
+                return (
+                  <SidebarMenuItem key={item.url}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={active}
+                      tooltip={item.title}
+                      className="group relative h-9 rounded-md data-[active=true]:bg-gradient-to-r data-[active=true]:from-gold/15 data-[active=true]:to-transparent data-[active=true]:text-gold hover:bg-sidebar-accent/70 transition-colors"
+                    >
+                      <Link to={item.url}>
+                        <span
+                          className={`absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full bg-gold transition-all duration-300 ${
+                            active ? "opacity-100 scale-y-100" : "opacity-0 scale-y-50"
+                          }`}
+                        />
+                        <item.icon className={`h-4 w-4 shrink-0 transition-colors ${active ? "text-gold" : "text-sidebar-foreground/70 group-hover:text-gold"}`} />
+                        <span className="truncate">{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
 
       <SidebarFooter className="border-t border-sidebar-border">
         {!collapsed ? (
