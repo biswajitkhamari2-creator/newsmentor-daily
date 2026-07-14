@@ -318,6 +318,7 @@ type GeneratedQ = {
 
 function MainsGenerator() {
   const generate = useServerFn(generateMainsQuestions);
+  const archive = useMainsArchive();
   const [topic, setTopic] = useState("");
   const [count, setCount] = useState("4");
   const [questions, setQuestions] = useState<GeneratedQ[] | null>(null);
@@ -329,7 +330,10 @@ function MainsGenerator() {
     setLoading(true); setError(null); setQuestions(null);
     try {
       const out = await generate({ data: { topic: topic.trim(), count: Number(count) } });
-      setQuestions(out.questions as GeneratedQ[]);
+      const qs = out.questions as GeneratedQ[];
+      setQuestions(qs);
+      // auto-archive every generated question
+      archive.addMany(qs.map((q) => ({ ...q, topic: topic.trim() })));
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Failed to generate";
       if (msg.includes("429")) setError("Rate limit hit. Please retry in a moment.");
@@ -338,6 +342,7 @@ function MainsGenerator() {
     } finally {
       setLoading(false);
     }
+
   };
 
   const suggestions = ["Cooperative federalism", "Climate change & India", "Ethics in public service", "Green Hydrogen Mission", "India-EU FTA"];
