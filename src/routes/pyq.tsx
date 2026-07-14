@@ -168,6 +168,7 @@ const SUBJECTS: { key: string; label: string; subtopics: string[] }[] = [
 
 function UnlimitedMockPanel() {
   const genMcqs = useServerFn(generatePrelimsMcqs);
+  const bookmarks = useMcqBookmarks();
   const [subject, setSubject] = useState(SUBJECTS[0].key);
   const [subtopic, setSubtopic] = useState(SUBJECTS[0].subtopics[0]);
   const [custom, setCustom] = useState("");
