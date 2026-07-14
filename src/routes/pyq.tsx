@@ -11,7 +11,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Collapsible, CollapsibleContent, CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronDown, Timer, CheckCircle2, Play, Search, RefreshCw, AlertCircle, Radio, Sparkles, Loader2, Archive, Trash2, BookmarkCheck } from "lucide-react";
+import { ChevronDown, Timer, CheckCircle2, Play, Search, RefreshCw, AlertCircle, Radio, Sparkles, Loader2, Archive, Trash2, BookmarkCheck, Bookmark, BookmarkPlus } from "lucide-react";
 import { pyqs, mockTests } from "@/data/mock";
 import { fetchMcqs, fetchMains, type LiveMcq, type LiveMains } from "@/lib/api";
 import { generateMainsQuestions } from "@/lib/mains.functions";
@@ -19,6 +19,7 @@ import { generatePrelimsMcqs } from "@/lib/mcqs.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { useMainsArchive, type ArchivedQuestion } from "@/hooks/useMainsArchive";
 import { useActivityStore, relativeTime } from "@/hooks/useActivityStore";
+import { useMcqBookmarks } from "@/hooks/useMcqBookmarks";
 
 export const Route = createFileRoute("/pyq")({
   head: () => ({
@@ -78,6 +79,7 @@ function PyqPage() {
           <TabsTrigger value="archive"><Archive className="h-3.5 w-3.5 mr-1" /> Archive</TabsTrigger>
           <TabsTrigger value="pyq">PYQ Bank</TabsTrigger>
           <TabsTrigger value="mock">Mock Tests</TabsTrigger>
+          <TabsTrigger value="bookmarks"><Bookmark className="h-3.5 w-3.5 mr-1" /> Bookmarks</TabsTrigger>
         </TabsList>
 
         <TabsContent value="generator" className="mt-4">
@@ -86,6 +88,10 @@ function PyqPage() {
 
         <TabsContent value="archive" className="mt-4">
           <MainsArchivePanel />
+        </TabsContent>
+
+        <TabsContent value="bookmarks" className="mt-4">
+          <BookmarkedMcqsPanel />
         </TabsContent>
 
 
@@ -162,6 +168,7 @@ const SUBJECTS: { key: string; label: string; subtopics: string[] }[] = [
 
 function UnlimitedMockPanel() {
   const genMcqs = useServerFn(generatePrelimsMcqs);
+  const bookmarks = useMcqBookmarks();
   const [subject, setSubject] = useState(SUBJECTS[0].key);
   const [subtopic, setSubtopic] = useState(SUBJECTS[0].subtopics[0]);
   const [custom, setCustom] = useState("");
@@ -308,10 +315,23 @@ function UnlimitedMockPanel() {
                         })}
                       </ul>
                     )}
-                    <div className="mt-3 flex items-center gap-2">
+                    <div className="mt-3 flex items-center gap-2 flex-wrap">
                       <Button size="sm" variant="outline" onClick={() => setRevealed((r) => ({ ...r, [i]: !r[i] }))}>
                         {isRevealed ? "Hide answer" : "Reveal answer"}
                       </Button>
+                      {(() => {
+                        const saved = bookmarks.has(m);
+                        return (
+                          <Button
+                            size="sm"
+                            variant={saved ? "default" : "outline"}
+                            onClick={() => bookmarks.toggle({ ...m, topic: m.topic ?? effectiveTopic })}
+                            className={saved ? "bg-gold text-gold-foreground hover:bg-gold/90" : ""}
+                          >
+                            {saved ? <><BookmarkCheck className="h-3.5 w-3.5 mr-1" /> Bookmarked</> : <><BookmarkPlus className="h-3.5 w-3.5 mr-1" /> Bookmark</>}
+                          </Button>
+                        );
+                      })()}
                       {isRevealed && m.answer && (
                         <span className="text-sm text-gold">Correct: {m.answer}</span>
                       )}
@@ -758,4 +778,76 @@ function MainsArchivePanel() {
     </div>
   );
 }
+
+function BookmarkedMcqsPanel() {
+  const { ready, items, remove, clear } = useMcqBookmarks();
+  const [revealed, setRevealed] = useState<Record<string, boolean>>({});
+
+  if (!ready) return <div className="text-sm text-muted-foreground">Loading…</div>;
+
+  if (items.length === 0) {
+    return (
+      <Card className="shadow-sm">
+        <CardContent className="p-8 text-center space-y-2">
+          <Bookmark className="h-8 w-8 text-gold mx-auto" />
+          <div className="font-serif text-xl">No bookmarks yet</div>
+          <p className="text-sm text-muted-foreground">
+            Tap <BookmarkPlus className="inline h-3.5 w-3.5" /> Bookmark on any mock-test question to save it here for revision.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="text-sm text-muted-foreground">{items.length} saved for revision</div>
+        <Button size="sm" variant="outline" onClick={clear}>
+          <Trash2 className="h-3.5 w-3.5 mr-1" /> Clear all
+        </Button>
+      </div>
+      {items.map((m) => {
+        const isRevealed = revealed[m.id];
+        return (
+          <Card key={m.id} className="shadow-sm">
+            <CardContent className="p-5">
+              <div className="flex flex-wrap gap-2 items-center">
+                {m.topic && <Badge variant="outline" className="border-gold/50 text-gold">{m.topic}</Badge>}
+                <span className="text-xs text-muted-foreground ml-auto">{relativeTime(m.savedAt)}</span>
+              </div>
+              <p className="mt-3 font-serif text-lg leading-snug">{m.question}</p>
+              {m.options && (
+                <ul className="mt-3 space-y-1.5 text-sm">
+                  {m.options.map((o, j) => {
+                    const letter = String.fromCharCode(97 + j);
+                    const isCorrect = isRevealed && m.answer && o === m.answer;
+                    return (
+                      <li key={j} className={`flex gap-2 px-3 py-1.5 rounded-md border ${isCorrect ? "border-gold bg-gold/10" : "border-border"}`}>
+                        <span className="text-gold">{letter})</span><span>{o}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+              <div className="mt-3 flex items-center gap-2 flex-wrap">
+                <Button size="sm" variant="outline" onClick={() => setRevealed((r) => ({ ...r, [m.id]: !r[m.id] }))}>
+                  {isRevealed ? "Hide answer" : "Reveal answer"}
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => remove(m.id)}>
+                  <Trash2 className="h-3.5 w-3.5 mr-1" /> Remove
+                </Button>
+                {isRevealed && m.answer && <span className="text-sm text-gold">Correct: {m.answer}</span>}
+              </div>
+              {isRevealed && m.explanation && (
+                <div className="mt-2 rounded-md bg-muted/40 p-3 text-sm whitespace-pre-wrap">{m.explanation}</div>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
+  );
+}
+
 
