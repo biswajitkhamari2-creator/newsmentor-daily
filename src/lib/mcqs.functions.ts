@@ -17,26 +17,45 @@ export const generatePrelimsMcqs = createServerFn({ method: "POST" })
     if (!key) throw new Error("Missing LOVABLE_API_KEY");
 
     const gateway = createLovableAiGatewayProvider(key);
+    const model = gateway("google/gemini-3-flash-preview");
 
-    const { output } = await generateText({
-      model: gateway("google/gemini-3-flash-preview"),
-      output: Output.object({
-        schema: z.object({
-          mcqs: z.array(
-            z.object({
-              question: z.string(),
-              options: z.array(z.string()).length(4),
-              answer: z.string(),
-              explanation: z.string(),
-              topic: z.string(),
-            }),
-          ),
+    const McqSchema = z.object({
+      mcqs: z.array(
+        z.object({
+          question: z.string(),
+          options: z.array(z.string()).length(4),
+          answer: z.string(),
+          explanation: z.string(),
+          topic: z.string(),
         }),
-      }),
-      system:
-        "You are a UPSC Prelims paper-setter. Generate rigorous, factually accurate UPSC Prelims-style MCQs with exactly 4 options each. The 'answer' field must be one of the option strings (verbatim). Explanations must be 2-3 lines with the concept and elimination logic.",
-      prompt: `Generate ${data.count} UPSC Prelims MCQs strictly focused on: "${data.topic}". Stay tightly on this topic/subtopic; do not drift to unrelated areas.${data.seed ? ` Variation seed: ${data.seed} — produce a fresh batch, do NOT repeat earlier questions.` : ""}${data.avoid && data.avoid.length ? ` AVOID repeating or paraphrasing any of these previously-asked questions:\n- ${data.avoid.slice(-60).join("\n- ")}` : ""}`,
+      ),
     });
 
-    return output;
+    // Chunk into batches of 8 to stay well inside the model's structured-output budget.
+    const CHUNK = 8;
+    const total = data.count;
+    const batches: number[] = [];
+    for (let n = total; n > 0; n -= CHUNK) batches.push(Math.min(CHUNK, n));
+
+    const avoidList = (data.avoid ?? []).slice(-40);
+    const seenSoFar: string[] = [];
+    const all: z.infer<typeof McqSchema>["mcqs"] = [];
+
+    for (let i = 0; i < batches.length; i++) {
+      const size = batches[i];
+      const avoidCombined = [...avoidList, ...seenSoFar].slice(-60);
+      const { output } = await generateText({
+        model,
+        maxOutputTokens: 4096,
+        output: Output.object({ schema: McqSchema }),
+        system:
+          "You are a UPSC Prelims paper-setter. Generate rigorous, factually accurate UPSC Prelims-style MCQs with exactly 4 options each. The 'answer' field must be one of the option strings (verbatim). Keep explanations to 1-2 crisp lines.",
+        prompt: `Generate ${size} UPSC Prelims MCQs strictly focused on: "${data.topic}". Stay tightly on this topic/subtopic; do not drift.${data.seed ? ` Variation seed: ${data.seed}-b${i} — produce a fresh batch.` : ""}${avoidCombined.length ? ` AVOID repeating or paraphrasing any of these previously-asked questions:\n- ${avoidCombined.join("\n- ")}` : ""}`,
+      });
+      const batch = output.mcqs;
+      all.push(...batch);
+      seenSoFar.push(...batch.map((m) => m.question));
+    }
+
+    return { mcqs: all };
   });
