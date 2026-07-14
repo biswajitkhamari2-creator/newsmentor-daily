@@ -37,7 +37,7 @@ const ticker = [
   "Bharat NCAP rates 3 new SUVs",
 ];
 
-const weeklyHours = [3.2, 4.1, 5.5, 4.8, 6.2, 5.9, 4.2];
+
 const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const upcomingTests = [
   { name: "Prelims Mock #14", subject: "GS-I · Full length", date: "Wed, 15 Jul", difficulty: "Hard" },
@@ -135,7 +135,7 @@ function FactsRotator() {
 }
 
 function Dashboard() {
-  const { streak, tasks: plannerTasks, weeklyGoalHrs, syllabus: liveSyllabus } = usePlannerStore();
+  const { streak, tasks: plannerTasks, weeklyGoalHrs, syllabus: liveSyllabus, weekDailyHrs, weekHrs } = usePlannerStore();
   const done = plannerTasks.filter((t) => t.done).length;
   const totalToday = plannerTasks.length;
   const topics = liveSyllabus.flatMap((p) => p.topics);
@@ -143,7 +143,8 @@ function Dashboard() {
   const targetHours = Math.max(1, Math.round((weeklyGoalHrs / 7) * 10) / 10);
   const doneHours = Math.round(done * 0.5 * 10) / 10;
   const targetPct = Math.min(100, Math.round((doneHours / targetHours) * 100));
-  const maxWeek = Math.max(...weeklyHours);
+  const maxWeek = Math.max(0.5, ...weekDailyHrs);
+  const todayDow = (new Date().getDay() + 6) % 7; // 0=Mon..6=Sun
 
   const { data: liveNews } = useQuery({
     queryKey: ["latest-news"],
@@ -396,21 +397,37 @@ function Dashboard() {
             </div>
           </BentoCard>
 
-          {/* Weekly progress chart */}
+          {/* Weekly progress chart — live from planner */}
           <BentoCard className="lg:col-span-3" delay={400}>
-            <BentoHeader eyebrow="Last 7 days" title="Weekly focus" icon={BarChart3} />
-            <div className="mt-6 flex items-stretch justify-between gap-2 h-36">
-              {weeklyHours.map((h, i) => {
-                const pct = (h / maxWeek) * 100;
-                const isToday = i === 6;
+            <BentoHeader eyebrow="This week · live" title="Weekly focus" icon={BarChart3} />
+            <div className="mt-1 mb-2 flex items-center gap-1.5 text-[10px] uppercase tracking-[0.22em] text-success">
+              <span className="relative inline-flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-success opacity-75 animate-ping" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-success" />
+              </span>
+              Live · synced from planner
+            </div>
+            <div className="mt-4 flex items-stretch justify-between gap-2 h-36">
+              {weekDailyHrs.map((h, i) => {
+                const pct = h > 0 ? Math.max(6, (h / maxWeek) * 100) : 0;
+                const isToday = i === todayDow;
+                const isFuture = i > todayDow;
                 return (
                   <div key={i} className="flex-1 flex flex-col items-center gap-2 h-full">
                     <div className="w-full flex-1 flex items-end min-h-0">
-                      <div
-                        className={`w-full rounded-t-md ${isToday ? "gradient-gold" : "bg-primary/70"} animate-bar hover:opacity-90 transition`}
-                        style={{ height: `${pct}%`, animationDelay: `${i * 60}ms` }}
-                        title={`${h} hrs`}
-                      />
+                      {h > 0 ? (
+                        <div
+                          className={`w-full rounded-t-md ${isToday ? "gradient-gold" : "bg-primary/70"} animate-bar hover:opacity-90 transition`}
+                          style={{ height: `${pct}%`, animationDelay: `${i * 60}ms` }}
+                          title={`${h} hrs`}
+                        />
+                      ) : (
+                        <div
+                          className={`w-full rounded-t-md border border-dashed ${isFuture ? "border-border/40" : "border-border/70"}`}
+                          style={{ height: `6%` }}
+                          title={isFuture ? "Upcoming" : "No tasks completed"}
+                        />
+                      )}
                     </div>
                     <div className={`text-[10px] uppercase tracking-wider ${isToday ? "text-gold font-semibold" : "text-muted-foreground"}`}>{weekDays[i]}</div>
                   </div>
@@ -419,9 +436,12 @@ function Dashboard() {
             </div>
             <div className="mt-4 pt-3 border-t flex justify-between text-xs">
               <span className="text-muted-foreground">Total this week</span>
-              <span className="font-medium text-foreground">{weeklyHours.reduce((a, b) => a + b, 0).toFixed(1)} hrs</span>
+              <span className="font-medium text-foreground">
+                <span className="tabular-nums">{weekHrs.toFixed(1)}</span> / {weeklyGoalHrs} hrs
+              </span>
             </div>
           </BentoCard>
+
 
           {/* Performance analytics — live */}
           <BentoCard className="lg:col-span-3" delay={480}>

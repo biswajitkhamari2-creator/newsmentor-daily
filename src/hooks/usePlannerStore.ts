@@ -120,17 +120,24 @@ export function usePlannerStore() {
     topics: p.topics.map((t) => ({ ...t, progress: state.progress[t.id] ?? 0 })),
   }));
 
-  // weekly hours: sum of task time estimates (30m per completed task fallback) across last 7 days
-  const weekHrs = (() => {
-    let mins = 0;
+  // weekly hours per day Mon..Sun of the current ISO week (30m per completed task)
+  const weekDailyHrs = (() => {
+    const now = new Date();
+    const dow = (now.getDay() + 6) % 7; // 0=Mon..6=Sun
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - dow);
+    const days: number[] = [];
     for (let i = 0; i < 7; i++) {
-      const d = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
-      const day = state.days[d];
-      if (!day) continue;
-      mins += day.tasks.filter((t) => t.done).length * 30;
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      const key = d.toISOString().slice(0, 10);
+      const day = state.days[key];
+      const mins = day ? day.tasks.filter((t) => t.done).length * 30 : 0;
+      days.push(Math.round((mins / 60) * 10) / 10);
     }
-    return Math.round((mins / 60) * 10) / 10;
+    return days;
   })();
+  const weekHrs = Math.round(weekDailyHrs.reduce((a, b) => a + b, 0) * 10) / 10;
 
   return {
     ready,
@@ -140,6 +147,7 @@ export function usePlannerStore() {
     streak: state.streak,
     weeklyGoalHrs: state.weeklyGoalHrs,
     weekHrs,
+    weekDailyHrs,
     toggleTask,
     addTask,
     removeTask,
