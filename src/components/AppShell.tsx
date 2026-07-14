@@ -15,10 +15,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { HamburgerTrigger } from "./HamburgerTrigger";
-import {
-  _unused_marker,
-  useSidebar,
-} from "@/components/ui/sidebar";
+import { useSidebar } from "@/components/ui/sidebar";
 import {
   LayoutDashboard,
   Newspaper,
