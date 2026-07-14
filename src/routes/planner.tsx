@@ -23,6 +23,7 @@ import { useSyllabusTracker, getChaptersForSubject } from "@/hooks/useSyllabusTr
 import { subjects as ALL_SUBJECTS } from "@/data/subjectMap";
 import { Archive, GraduationCap, Undo2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { TodayDiary } from "@/components/TodayDiary";
 
 export const Route = createFileRoute("/planner")({
   head: () => ({
