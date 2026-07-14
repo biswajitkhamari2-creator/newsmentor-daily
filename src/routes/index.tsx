@@ -15,6 +15,7 @@ import { AnimatedCounter } from "@/components/AnimatedCounter";
 import { fetchLatestNews } from "@/lib/news.functions";
 import { fetchPrelimsFacts } from "@/lib/facts.functions";
 import { usePlannerStore } from "@/hooks/usePlannerStore";
+import { useActivityStore, relativeTime } from "@/hooks/useActivityStore";
 
 export const Route = createFileRoute("/")({
   head: () => ({
