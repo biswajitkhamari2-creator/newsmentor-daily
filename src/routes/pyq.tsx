@@ -11,7 +11,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Collapsible, CollapsibleContent, CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronDown, Timer, CheckCircle2, Play, Search, RefreshCw, AlertCircle, Radio, Sparkles, Loader2, Archive, Trash2, BookmarkCheck } from "lucide-react";
+import { ChevronDown, Timer, CheckCircle2, Play, Search, RefreshCw, AlertCircle, Radio, Sparkles, Loader2, Archive, Trash2, BookmarkCheck, Bookmark, BookmarkPlus } from "lucide-react";
 import { pyqs, mockTests } from "@/data/mock";
 import { fetchMcqs, fetchMains, type LiveMcq, type LiveMains } from "@/lib/api";
 import { generateMainsQuestions } from "@/lib/mains.functions";
@@ -19,6 +19,7 @@ import { generatePrelimsMcqs } from "@/lib/mcqs.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { useMainsArchive, type ArchivedQuestion } from "@/hooks/useMainsArchive";
 import { useActivityStore, relativeTime } from "@/hooks/useActivityStore";
+import { useMcqBookmarks } from "@/hooks/useMcqBookmarks";
 
 export const Route = createFileRoute("/pyq")({
   head: () => ({
