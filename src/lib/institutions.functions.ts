@@ -192,8 +192,8 @@ const SOURCES: Array<{
   {
     key: "drishti",
     name: "Drishti IAS",
-    tagline: "Daily News Analysis",
-    site: "https://www.drishtiias.com/daily-updates/daily-news-analysis",
+    tagline: "Daily News Analysis & Editorials",
+    site: "https://www.drishtiias.com/current-affairs-news-analysis-editorials",
     accent: "from-rose-500/20 to-pink-500/5",
     load: fetchDrishti,
   },
