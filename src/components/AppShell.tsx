@@ -12,7 +12,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
-  SidebarTrigger,
+  useSidebar as _useSidebarUnused,
 } from "@/components/ui/sidebar";
 import { HamburgerTrigger } from "./HamburgerTrigger";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -120,7 +120,7 @@ function AppHeader() {
   const { streak } = usePlannerStore();
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b bg-background/80 backdrop-blur px-3 sm:px-6">
-      <SidebarTrigger />
+      <HamburgerTrigger />
       <div className="relative hidden md:block flex-1 max-w-md">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
